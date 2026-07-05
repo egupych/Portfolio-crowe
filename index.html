@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crowe Uzbekistan — Портфолио команды</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="page-bg" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <button class="logo-btn" id="logoBtn" type="button">
+      <img src="logo.svg" alt="Crowe Uzbekistan" class="logo-img">
+    </button>
+    <button class="back-btn" id="backBtn" type="button">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        Назад к команде
+      </button>
+  </header>
+
+  <main id="app">
+    <!-- Home -->
+    <section id="homeView" class="view view--active">
+      <div class="cards-grid" id="cardsGrid"></div>
+    </section>
+
+    <!-- Portfolio -->
+    <section id="portfolioView" class="view" hidden>
+      <article class="portfolio" id="portfolioContent"></article>
+      <section class="other-employees">
+        <h3 class="other-employees__title">Другие члены команды</h3>
+        <div class="cards-grid" id="otherEmployeesGrid"></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Certificate lightbox -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox__close" id="lightboxClose" type="button" aria-label="Закрыть">&times;</button>
+    <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" type="button" aria-label="Предыдущий">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="lightbox__stage">
+      <img class="lightbox__img" id="lightboxImg" src="" alt="Сертификат">
+      <div class="lightbox__lens" id="lightboxLens"></div>
+    </div>
+    <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" type="button" aria-label="Следующий">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <p class="lightbox__counter" id="lightboxCounter"></p>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
