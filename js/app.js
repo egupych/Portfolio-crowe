@@ -192,23 +192,39 @@ async function downloadResumePdf(employee) {
   btn.disabled = true;
   label.textContent = 'Формируем PDF…';
 
+  // Force every animated element into its final, fully-visible state.
+  // Without this, elements whose fade-in animation hasn't (re)settled can be
+  // captured mid-transition (faded/translated), which is what produced the
+  // washed-out screenshot.
+  document.body.classList.add('pdf-exporting');
+
   try {
     const html2pdf = await loadHtml2Pdf();
     const opt = {
       margin: [10, 10, 10, 10],
       filename: `${employee.name} — резюме.pdf`,
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFF1E5' },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFF1E5',
+        // html2canvas positions the capture using the page's current scroll
+        // offset. Since this button sits at the bottom of the resume, the
+        // page is scrolled down when clicked — without this correction the
+        // screenshot is cropped to the wrong region, showing as a big blank
+        // area on the exported page.
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      pagebreak: { mode: ['css', 'legacy'] },
     };
-    // Export the live, already-rendered resume block directly — no detached
-    // clones or off-screen positioning, which is what produced blank PDFs.
     await html2pdf().set(opt).from(resumeContent).save();
   } catch (err) {
     console.error(err);
     alert('Не удалось сформировать PDF. Попробуйте ещё раз.');
   } finally {
+    document.body.classList.remove('pdf-exporting');
     btn.disabled = false;
     label.textContent = originalLabel;
   }
