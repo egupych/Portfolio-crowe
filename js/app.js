@@ -101,24 +101,9 @@ function renderCertificates(name, options = {}) {
 function renderPortfolio(employee) {
   portfolioContent.innerHTML = '';
 
-  const certs = getCertificates(employee.name);
-  const hasCerts = certs.length > 0;
-
-  // ----- Tabs (only shown when there are certificates to switch to) -----
-  if (hasCerts) {
-    const tabs = document.createElement('div');
-    tabs.className = 'portfolio__tabs';
-    tabs.innerHTML = `
-      <button class="portfolio__tab portfolio__tab--active" data-tab="resume" type="button">Резюме</button>
-      <button class="portfolio__tab" data-tab="certificates" type="button">Сертификаты</button>
-    `;
-    portfolioContent.appendChild(tabs);
-  }
-
-  // ----- Resume pane -----
-  const resumePane = document.createElement('div');
-  resumePane.className = 'portfolio__pane portfolio__pane--active';
-  resumePane.id = 'resumePane';
+  // ----- Resume content (header + tags + body) -----
+  const resumeContent = document.createElement('div');
+  resumeContent.id = 'resumeContent';
 
   const header = document.createElement('header');
   header.className = 'portfolio__header';
@@ -134,7 +119,7 @@ function renderPortfolio(employee) {
       </div>
     </div>
   `;
-  resumePane.appendChild(header);
+  resumeContent.appendChild(header);
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
@@ -144,7 +129,7 @@ function renderPortfolio(employee) {
     span.textContent = t;
     tags.appendChild(span);
   });
-  resumePane.appendChild(tags);
+  resumeContent.appendChild(tags);
 
   const body = document.createElement('div');
   body.className = 'portfolio__body';
@@ -157,8 +142,10 @@ function renderPortfolio(employee) {
   employee.right.forEach((s, i) => rightCol.appendChild(renderSection(s, i + employee.left.length)));
   body.appendChild(rightCol);
 
-  resumePane.appendChild(body);
+  resumeContent.appendChild(body);
+  portfolioContent.appendChild(resumeContent);
 
+  // ----- Download PDF button (bottom of the resume) -----
   const downloadWrap = document.createElement('div');
   downloadWrap.className = 'portfolio__download-wrap';
   downloadWrap.innerHTML = `
@@ -170,37 +157,14 @@ function renderPortfolio(employee) {
       <span id="downloadPdfBtnLabel">Скачать резюме в PDF</span>
     </button>
   `;
-  resumePane.appendChild(downloadWrap);
-
-  portfolioContent.appendChild(resumePane);
-
-  // ----- Certificates pane -----
-  if (hasCerts) {
-    const certPane = document.createElement('div');
-    certPane.className = 'portfolio__pane';
-    certPane.id = 'certPane';
-    const certsBlock = renderCertificates(employee.name);
-    if (certsBlock) certPane.appendChild(certsBlock);
-    portfolioContent.appendChild(certPane);
-  }
-
-  // ----- Events -----
+  portfolioContent.appendChild(downloadWrap);
   document.getElementById('downloadPdfBtn').addEventListener('click', () => downloadResumePdf(employee));
 
-  portfolioContent.querySelectorAll('.portfolio__tab').forEach((tab) => {
-    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-  });
+  // ----- Certificates -----
+  const certsBlock = renderCertificates(employee.name);
+  if (certsBlock) portfolioContent.appendChild(certsBlock);
 
   renderOtherEmployees(employee.id);
-}
-
-function switchTab(tab) {
-  portfolioContent.querySelectorAll('.portfolio__tab').forEach((t) => {
-    t.classList.toggle('portfolio__tab--active', t.dataset.tab === tab);
-  });
-  document.getElementById('resumePane')?.classList.toggle('portfolio__pane--active', tab === 'resume');
-  document.getElementById('certPane')?.classList.toggle('portfolio__pane--active', tab === 'certificates');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ----- PDF export -----
@@ -221,30 +185,12 @@ function loadHtml2Pdf() {
 async function downloadResumePdf(employee) {
   const btn = document.getElementById('downloadPdfBtn');
   const label = document.getElementById('downloadPdfBtnLabel');
-  const resumeEl = document.getElementById('resumePane');
-  if (!btn || !resumeEl) return;
+  const resumeContent = document.getElementById('resumeContent');
+  if (!btn || !resumeContent) return;
 
   const originalLabel = label.textContent;
   btn.disabled = true;
   label.textContent = 'Формируем PDF…';
-
-  const clone = resumeEl.cloneNode(true);
-  clone.querySelector('.portfolio__download-wrap')?.remove();
-  clone.classList.add('pdf-export-clone');
-  clone.style.position = 'fixed';
-  clone.style.top = '0';
-  clone.style.left = '-9999px';
-  clone.style.width = `${resumeEl.offsetWidth}px`;
-  clone.style.background = '#FFF1E5';
-  clone.style.padding = '24px';
-  // Cloned nodes replay CSS animations from their "from" state (opacity: 0),
-  // which would capture as blank/faded content — freeze everything in its final state.
-  clone.querySelectorAll('*').forEach((node) => {
-    node.style.animation = 'none';
-    node.style.opacity = '1';
-    node.style.transform = 'none';
-  });
-  document.body.appendChild(clone);
 
   try {
     const html2pdf = await loadHtml2Pdf();
@@ -256,12 +202,13 @@ async function downloadResumePdf(employee) {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     };
-    await html2pdf().set(opt).from(clone).save();
+    // Export the live, already-rendered resume block directly — no detached
+    // clones or off-screen positioning, which is what produced blank PDFs.
+    await html2pdf().set(opt).from(resumeContent).save();
   } catch (err) {
     console.error(err);
     alert('Не удалось сформировать PDF. Попробуйте ещё раз.');
   } finally {
-    document.body.removeChild(clone);
     btn.disabled = false;
     label.textContent = originalLabel;
   }
