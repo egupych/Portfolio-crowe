@@ -308,7 +308,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;                  /* 32px */
+  gap: 1.7rem;                  /* 32px */
   margin-bottom: 1.75rem;     /* 28px */
   flex-wrap: wrap;
 }
@@ -459,7 +459,7 @@ body {
   font-weight: 600;
   font-size: var(--heading-size);
   line-height: var(--heading-lh);
-  margin-bottom: 2rem;        /* 32px */
+  margin-bottom: 1.7rem;        /* 32px */
 }
 
 /* ===== Certificate gallery ===== */
@@ -665,7 +665,7 @@ body {
 @keyframes cardIn {
   from {
     opacity: 0;
-    transform: translateY(2rem) scale(0.96); /* 32px */
+    transform: translateY(1.7rem) scale(0.96); /* 32px */
   }
 
   to {
@@ -748,7 +748,7 @@ body {
 @media (max-width: 900px) {
   .portfolio__body {
     grid-template-columns: 1fr;
-    gap: 2rem;                /* 32px */
+    gap: 1.7rem;                /* 32px */
   }
 }
 
@@ -781,25 +781,25 @@ body {
 
   /* Единые отступы между разделами */
   .portfolio__tags {
-    margin-bottom: 2rem;
+    margin-bottom: 1.7rem;
   }
 
   .portfolio__body {
-    gap: 2rem;
+    gap: 1.7rem;
   }
 
   .portfolio__section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.7rem;
   }
 
   .certificates {
-    margin-top: 2rem;
-    padding-top: 2rem;
+    margin-top: 1.7rem;
+    padding-top: 1.7rem;
   }
 
   .other-employees {
-    margin-top: 2rem;
-    padding-top: 2rem;
+    margin-top: 1.7rem;
+    padding-top: 1.7rem;
   }
 
   .tag {
