@@ -270,8 +270,38 @@ lightbox.addEventListener('click', (e) => {
   if (e.target === lightbox) closeLightbox();
 });
 
+// Touch device detection
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+// Swipe gesture functionality
+let touchStartX = 0;
+let touchStartY = 0;
+
+lightbox.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+  touchStartY = e.changedTouches[0].clientY;
+}, { passive: true });
+
+lightbox.addEventListener('touchend', (e) => {
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
+  
+  // Verify horizontal swipe (threshold of 50px difference horizontally, and low vertical drag)
+  if (Math.abs(diffX) > 50 && Math.abs(diffY) < 100) {
+    if (diffX > 0) {
+      navigateLightbox(-1);
+    } else {
+      navigateLightbox(1);
+    }
+  }
+}, { passive: true });
+
 // Magnifying lens functionality
 lightboxImg.addEventListener('mousemove', (e) => {
+  if (isTouchDevice) return;
   const rect = lightboxImg.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -287,6 +317,7 @@ lightboxImg.addEventListener('mousemove', (e) => {
 });
 
 lightboxImg.addEventListener('mouseleave', () => {
+  if (isTouchDevice) return;
   lightboxLens.style.display = 'none';
 });
 
