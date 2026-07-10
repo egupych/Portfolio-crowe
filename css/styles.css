@@ -107,6 +107,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 3rem;
+  padding-bottom: 4rem;
   /* 48px */
   max-width: 80rem;
   /* 1280px */
@@ -839,6 +840,7 @@ body {
 @media (max-width: 640px) {
   .site-header {
     padding: 1.25rem 1rem;
+    padding-bottom: 2rem;
     /* 20px 16px */
     flex-direction: row;
     align-items: center;
