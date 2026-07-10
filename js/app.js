@@ -189,6 +189,7 @@ function renderCards() {
 
 function switchView(toPortfolio) {
   if (toPortfolio) {
+    backBtn.style.display = 'inline-flex';
     homeView.classList.add('view--leaving');
     homeView.classList.remove('view--active');
     setTimeout(() => {
@@ -199,6 +200,7 @@ function switchView(toPortfolio) {
       });
     }, 300);
   } else {
+    backBtn.style.display = 'none';
     portfolioView.classList.remove('view--active');
     portfolioView.classList.add('view--leaving');
     setTimeout(() => {
@@ -322,7 +324,12 @@ function initFromHash() {
       homeView.classList.remove('view--active');
       portfolioView.hidden = false;
       portfolioView.classList.add('view--active');
+      backBtn.style.display = 'inline-flex';
+    } else {
+      backBtn.style.display = 'none';
     }
+  } else {
+    backBtn.style.display = 'none';
   }
 }
 
