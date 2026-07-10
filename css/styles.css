@@ -521,14 +521,106 @@ body {
   /* 32px */
 }
 
+/* ===== Portfolio tabs ===== */
+.portfolio__tabs {
+  display: flex;
+  gap: 0.5rem;
+  /* 8px */
+  justify-content: center;
+  margin-bottom: 2.25rem;
+  /* 36px */
+  animation: fadeUp 0.6s 0.1s both;
+}
+
+.portfolio__tab {
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: var(--tag-size);
+  line-height: var(--tag-lh);
+  padding: 0.5rem 1.25rem;
+  /* 8px 20px */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-tag);
+  background: transparent;
+  color: var(--color-text);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.portfolio__tab:hover {
+  opacity: 1;
+  border-color: var(--color-red);
+}
+
+.portfolio__tab--active {
+  background: var(--color-red);
+  border-color: var(--color-red);
+  color: var(--color-white);
+  opacity: 1;
+}
+
+.portfolio__pane {
+  display: none;
+}
+
+.portfolio__pane--active {
+  display: block;
+  animation: fadeUp 0.5s both;
+}
+
+/* ===== PDF download button ===== */
+.portfolio__download-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+  /* 48px */
+  padding-top: 2rem;
+  /* 32px */
+  border-top: 1px solid #FCD0B1;
+  animation: fadeUp 0.6s 0.5s both;
+}
+
+.portfolio__download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* 8px */
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: var(--tag-size);
+  line-height: var(--tag-lh);
+  padding: 0.75rem 1.5rem;
+  /* 12px 24px */
+  border: 1px solid var(--color-red);
+  border-radius: var(--radius-tag);
+  background: var(--color-red);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.portfolio__download-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-0.0625rem);
+  /* -1px */
+}
+
+.portfolio__download-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
 /* ===== Certificate gallery ===== */
 .certificates {
-  margin-top: 3.5rem;
-  /* 56px */
-  padding-top: 2.5rem;
-  /* 40px */
-  border-top: 1px solid #FCD0B1;
-  animation: fadeUp 0.7s 0.4s both;
+  animation: fadeUp 0.7s 0.15s both;
+}
+
+#certPane .certificates {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .certificates__title {
@@ -882,6 +974,16 @@ body {
   }
 
   .certificates {
+    margin-top: 1.7rem;
+    padding-top: 1.7rem;
+  }
+
+  #certPane .certificates {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .portfolio__download-wrap {
     margin-top: 1.7rem;
     padding-top: 1.7rem;
   }

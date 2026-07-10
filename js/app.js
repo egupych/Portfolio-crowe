@@ -62,17 +62,20 @@ function renderSection(section, delayIndex) {
   return el;
 }
 
-function renderCertificates(name) {
+function renderCertificates(name, options = {}) {
   const certs = getCertificates(name);
   if (!certs.length) return null;
 
   const block = document.createElement('div');
   block.className = 'certificates';
+  if (options.bare) block.classList.add('certificates--bare');
 
-  const title = document.createElement('h3');
-  title.className = 'certificates__title';
-  title.textContent = 'Сертификаты';
-  block.appendChild(title);
+  if (!options.bare) {
+    const title = document.createElement('h3');
+    title.className = 'certificates__title';
+    title.textContent = 'Сертификаты';
+    block.appendChild(title);
+  }
 
   const grid = document.createElement('div');
   grid.className = 'certificates__grid';
@@ -98,6 +101,25 @@ function renderCertificates(name) {
 function renderPortfolio(employee) {
   portfolioContent.innerHTML = '';
 
+  const certs = getCertificates(employee.name);
+  const hasCerts = certs.length > 0;
+
+  // ----- Tabs (only shown when there are certificates to switch to) -----
+  if (hasCerts) {
+    const tabs = document.createElement('div');
+    tabs.className = 'portfolio__tabs';
+    tabs.innerHTML = `
+      <button class="portfolio__tab portfolio__tab--active" data-tab="resume" type="button">Резюме</button>
+      <button class="portfolio__tab" data-tab="certificates" type="button">Сертификаты</button>
+    `;
+    portfolioContent.appendChild(tabs);
+  }
+
+  // ----- Resume pane -----
+  const resumePane = document.createElement('div');
+  resumePane.className = 'portfolio__pane portfolio__pane--active';
+  resumePane.id = 'resumePane';
+
   const header = document.createElement('header');
   header.className = 'portfolio__header';
   header.innerHTML = `
@@ -112,7 +134,7 @@ function renderPortfolio(employee) {
       </div>
     </div>
   `;
-  portfolioContent.appendChild(header);
+  resumePane.appendChild(header);
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
@@ -122,7 +144,7 @@ function renderPortfolio(employee) {
     span.textContent = t;
     tags.appendChild(span);
   });
-  portfolioContent.appendChild(tags);
+  resumePane.appendChild(tags);
 
   const body = document.createElement('div');
   body.className = 'portfolio__body';
@@ -135,12 +157,114 @@ function renderPortfolio(employee) {
   employee.right.forEach((s, i) => rightCol.appendChild(renderSection(s, i + employee.left.length)));
   body.appendChild(rightCol);
 
-  portfolioContent.appendChild(body);
+  resumePane.appendChild(body);
 
-  const certsBlock = renderCertificates(employee.name);
-  if (certsBlock) portfolioContent.appendChild(certsBlock);
+  const downloadWrap = document.createElement('div');
+  downloadWrap.className = 'portfolio__download-wrap';
+  downloadWrap.innerHTML = `
+    <button class="portfolio__download-btn" id="downloadPdfBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span id="downloadPdfBtnLabel">Скачать резюме в PDF</span>
+    </button>
+  `;
+  resumePane.appendChild(downloadWrap);
+
+  portfolioContent.appendChild(resumePane);
+
+  // ----- Certificates pane -----
+  if (hasCerts) {
+    const certPane = document.createElement('div');
+    certPane.className = 'portfolio__pane';
+    certPane.id = 'certPane';
+    const certsBlock = renderCertificates(employee.name);
+    if (certsBlock) certPane.appendChild(certsBlock);
+    portfolioContent.appendChild(certPane);
+  }
+
+  // ----- Events -----
+  document.getElementById('downloadPdfBtn').addEventListener('click', () => downloadResumePdf(employee));
+
+  portfolioContent.querySelectorAll('.portfolio__tab').forEach((tab) => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
 
   renderOtherEmployees(employee.id);
+}
+
+function switchTab(tab) {
+  portfolioContent.querySelectorAll('.portfolio__tab').forEach((t) => {
+    t.classList.toggle('portfolio__tab--active', t.dataset.tab === tab);
+  });
+  document.getElementById('resumePane')?.classList.toggle('portfolio__pane--active', tab === 'resume');
+  document.getElementById('certPane')?.classList.toggle('portfolio__pane--active', tab === 'certificates');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ----- PDF export -----
+function loadHtml2Pdf() {
+  return new Promise((resolve, reject) => {
+    if (window.html2pdf) {
+      resolve(window.html2pdf);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    script.onload = () => resolve(window.html2pdf);
+    script.onerror = () => reject(new Error('Не удалось загрузить библиотеку PDF'));
+    document.head.appendChild(script);
+  });
+}
+
+async function downloadResumePdf(employee) {
+  const btn = document.getElementById('downloadPdfBtn');
+  const label = document.getElementById('downloadPdfBtnLabel');
+  const resumeEl = document.getElementById('resumePane');
+  if (!btn || !resumeEl) return;
+
+  const originalLabel = label.textContent;
+  btn.disabled = true;
+  label.textContent = 'Формируем PDF…';
+
+  const clone = resumeEl.cloneNode(true);
+  clone.querySelector('.portfolio__download-wrap')?.remove();
+  clone.classList.add('pdf-export-clone');
+  clone.style.position = 'fixed';
+  clone.style.top = '0';
+  clone.style.left = '-9999px';
+  clone.style.width = `${resumeEl.offsetWidth}px`;
+  clone.style.background = '#FFF1E5';
+  clone.style.padding = '24px';
+  // Cloned nodes replay CSS animations from their "from" state (opacity: 0),
+  // which would capture as blank/faded content — freeze everything in its final state.
+  clone.querySelectorAll('*').forEach((node) => {
+    node.style.animation = 'none';
+    node.style.opacity = '1';
+    node.style.transform = 'none';
+  });
+  document.body.appendChild(clone);
+
+  try {
+    const html2pdf = await loadHtml2Pdf();
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `${employee.name} — резюме.pdf`,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#FFF1E5' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+    await html2pdf().set(opt).from(clone).save();
+  } catch (err) {
+    console.error(err);
+    alert('Не удалось сформировать PDF. Попробуйте ещё раз.');
+  } finally {
+    document.body.removeChild(clone);
+    btn.disabled = false;
+    label.textContent = originalLabel;
+  }
 }
 
 function renderOtherEmployees(currentId) {
