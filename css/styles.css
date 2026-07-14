@@ -723,9 +723,9 @@ body {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  width: 3rem;
+  width: 4rem;
   /* 48px */
-  height: 3rem;
+  height: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
