@@ -521,16 +521,6 @@ body {
   /* 32px */
 }
 
-/* ===== PDF export state ===== */
-/* While html2canvas is capturing #resumeContent, force every element into
-   its final animation state so nothing is caught mid fade-in/translate. */
-.pdf-exporting #resumeContent,
-.pdf-exporting #resumeContent * {
-  animation: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-}
-
 /* ===== PDF download button ===== */
 .portfolio__download-wrap {
   display: flex;
@@ -558,6 +548,7 @@ body {
   border-radius: var(--radius-tag);
   background: var(--color-red);
   color: var(--color-white);
+  text-decoration: none;
   cursor: pointer;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
