@@ -62,17 +62,20 @@ function renderSection(section, delayIndex) {
   return el;
 }
 
-function renderCertificates(name) {
+function renderCertificates(name, options = {}) {
   const certs = getCertificates(name);
   if (!certs.length) return null;
 
   const block = document.createElement('div');
   block.className = 'certificates';
+  if (options.bare) block.classList.add('certificates--bare');
 
-  const title = document.createElement('h3');
-  title.className = 'certificates__title';
-  title.textContent = 'Сертификаты';
-  block.appendChild(title);
+  if (!options.bare) {
+    const title = document.createElement('h3');
+    title.className = 'certificates__title';
+    title.textContent = 'Сертификаты';
+    block.appendChild(title);
+  }
 
   const grid = document.createElement('div');
   grid.className = 'certificates__grid';
@@ -98,6 +101,10 @@ function renderCertificates(name) {
 function renderPortfolio(employee) {
   portfolioContent.innerHTML = '';
 
+  // ----- Resume content (header + tags + body) -----
+  const resumeContent = document.createElement('div');
+  resumeContent.id = 'resumeContent';
+
   const header = document.createElement('header');
   header.className = 'portfolio__header';
   header.innerHTML = `
@@ -112,7 +119,7 @@ function renderPortfolio(employee) {
       </div>
     </div>
   `;
-  portfolioContent.appendChild(header);
+  resumeContent.appendChild(header);
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
@@ -122,7 +129,7 @@ function renderPortfolio(employee) {
     span.textContent = t;
     tags.appendChild(span);
   });
-  portfolioContent.appendChild(tags);
+  resumeContent.appendChild(tags);
 
   const body = document.createElement('div');
   body.className = 'portfolio__body';
@@ -135,8 +142,24 @@ function renderPortfolio(employee) {
   employee.right.forEach((s, i) => rightCol.appendChild(renderSection(s, i + employee.left.length)));
   body.appendChild(rightCol);
 
-  portfolioContent.appendChild(body);
+  resumeContent.appendChild(body);
+  portfolioContent.appendChild(resumeContent);
 
+  // ----- Download PDF button (bottom of the resume) -----
+  const downloadWrap = document.createElement('div');
+  downloadWrap.className = 'portfolio__download-wrap';
+  downloadWrap.innerHTML = `
+    <a class="portfolio__download-btn" href="PDF/${encodeURIComponent(employee.name)}.pdf" download="${employee.name} — резюме.pdf">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>Скачать резюме в PDF</span>
+    </a>
+  `;
+  portfolioContent.appendChild(downloadWrap);
+
+  // ----- Certificates -----
   const certsBlock = renderCertificates(employee.name);
   if (certsBlock) portfolioContent.appendChild(certsBlock);
 
