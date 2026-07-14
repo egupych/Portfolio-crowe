@@ -528,8 +528,10 @@ body {
   margin-top: 3rem;
   /* 48px */
   padding-top: 2rem;
+  padding-bottom: 2rem;
   /* 32px */
   border-top: 1px solid #FCD0B1;
+  border-bottom: 1px solid #FCD0B1;
   animation: fadeUp 0.6s 0.5s both;
 }
 
@@ -547,7 +549,7 @@ body {
   border: 1px solid var(--color-red);
   border-radius: var(--radius-tag);
   background: var(--color-red);
-  color: var(--color-white);
+  color: var(--color-bg);
   text-decoration: none;
   cursor: pointer;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
@@ -933,6 +935,7 @@ body {
   .portfolio__download-wrap {
     margin-top: 1.7rem;
     padding-top: 1.7rem;
+    padding-bottom: 1.7rem;
   }
 
   .other-employees {
