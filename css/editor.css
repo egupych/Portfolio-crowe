@@ -1,0 +1,41 @@
+/* Editor helpers: editable highlights, edited marks, controls */
+.editable {
+  outline: 2px dashed rgba(153,15,61,0.18);
+  border-radius: 4px;
+  padding: 0.02rem;
+}
+[data-edit-key][contenteditable="true"] {
+  caret-color: #990F3D;
+}
+.edited {
+  background: #fff59d;
+  transition: background 0.2s ease;
+}
+
+#editorControls {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+#editorControls button {
+  background: var(--color-white);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#editorControls button#editToggle {
+  background: transparent;
+}
+
+#editorControls button:hover {
+  opacity: 0.95;
+}
+
+@media print {
+  .edited { background: #fff59d !important; }
+}

@@ -6,7 +6,6 @@ const cardsGrid = document.getElementById('cardsGrid');
 const portfolioContent = document.getElementById('portfolioContent');
 const otherEmployeesGrid = document.getElementById('otherEmployeesGrid');
 const backBtn = document.getElementById('backBtn');
-const headerBackBtn = document.getElementById('headerBackBtn');
 const logoBtn = document.getElementById('logoBtn');
 
 const lightbox = document.getElementById('lightbox');
@@ -21,7 +20,15 @@ let currentCerts = [];
 let currentCertIndex = 0;
 let viewedEmployees = new Set();
 
-function renderSection(section, delayIndex) {
+// Editing state
+const EDIT_KEY = 'portfolio_edits_v1';
+let savedEdits = { timestamp: 0, items: {} };
+let originalContents = {}; // key -> original HTML
+let autosaveTimer = null;
+const AUTOSAVE_MS = 5 * 60 * 1000; // 5 minutes
+let editMode = false;
+
+function renderSection(section, delayIndex, employeeId) {
   const el = document.createElement('div');
   el.className = 'portfolio__section';
   el.style.animationDelay = `${0.35 + delayIndex * 0.08}s`;
@@ -29,31 +36,34 @@ function renderSection(section, delayIndex) {
   const title = document.createElement('h3');
   title.className = 'portfolio__section-title';
   title.textContent = section.title;
+  title.dataset.editKey = `${employeeId}::section::${section.title}::title`;
   el.appendChild(title);
 
   if (section.type === 'paragraphs') {
-    section.items.forEach((text) => {
+    section.items.forEach((text, idx) => {
       const p = document.createElement('p');
       p.className = 'text';
       p.textContent = text;
+      p.dataset.editKey = `${employeeId}::section::${section.title}::p${idx}`;
       el.appendChild(p);
     });
   } else if (section.type === 'list') {
     const ul = document.createElement('ul');
     ul.className = 'portfolio__list text';
-    section.items.forEach((item) => {
+    section.items.forEach((item, idx) => {
       const li = document.createElement('li');
       li.textContent = item;
+      li.dataset.editKey = `${employeeId}::section::${section.title}::li${idx}`;
       ul.appendChild(li);
     });
     el.appendChild(ul);
   } else if (section.type === 'experience') {
-    section.items.forEach((exp) => {
+    section.items.forEach((exp, idx) => {
       const item = document.createElement('div');
       item.className = 'portfolio__experience-item';
       item.innerHTML = `
-        <div class="portfolio__experience-role">${exp.role}</div>
-        <div class="portfolio__experience-meta">${exp.period} / ${exp.company}</div>
+        <div class="portfolio__experience-role" data-edit-key="${employeeId}::experience::${idx}::role">${exp.role}</div>
+        <div class="portfolio__experience-meta" data-edit-key="${employeeId}::experience::${idx}::meta">${exp.period} / ${exp.company}</div>
       `;
       el.appendChild(item);
     });
@@ -103,8 +113,8 @@ function renderPortfolio(employee) {
   header.innerHTML = `
     <img class="portfolio__photo" src="${employee.photo}" alt="${employee.name}">
     <div class="portfolio__info">
-      <h2 class="portfolio__name">${employee.name}</h2>
-      <p class="portfolio__role role">${employee.role}</p>
+      <h2 class="portfolio__name" data-edit-key="${employee.id}::name">${employee.name}</h2>
+      <p class="portfolio__role role" data-edit-key="${employee.id}::role">${employee.role}</p>
       <div class="portfolio__languages">
         <div class="portfolio__flags">
           ${employee.languages.map((code) => `<img class="portfolio__flag" src="${getFlag(code)}" alt="">`).join('')}
@@ -116,10 +126,11 @@ function renderPortfolio(employee) {
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
-  employee.tags.forEach((t) => {
+  employee.tags.forEach((t, idx) => {
     const span = document.createElement('span');
     span.className = 'tag';
     span.textContent = t;
+    span.dataset.editKey = `${employee.id}::tag${idx}`;
     tags.appendChild(span);
   });
   portfolioContent.appendChild(tags);
@@ -128,11 +139,11 @@ function renderPortfolio(employee) {
   body.className = 'portfolio__body';
 
   const leftCol = document.createElement('div');
-  employee.left.forEach((s, i) => leftCol.appendChild(renderSection(s, i)));
+  employee.left.forEach((s, i) => leftCol.appendChild(renderSection(s, i, employee.id)));
   body.appendChild(leftCol);
 
   const rightCol = document.createElement('div');
-  employee.right.forEach((s, i) => rightCol.appendChild(renderSection(s, i + employee.left.length)));
+  employee.right.forEach((s, i) => rightCol.appendChild(renderSection(s, i + employee.left.length, employee.id)));
   body.appendChild(rightCol);
 
   portfolioContent.appendChild(body);
@@ -141,6 +152,9 @@ function renderPortfolio(employee) {
   if (certsBlock) portfolioContent.appendChild(certsBlock);
 
   renderOtherEmployees(employee.id);
+
+  // After rendering, apply editability/restore saved
+  applyEditable();
 }
 
 function renderOtherEmployees(currentId) {
@@ -158,12 +172,15 @@ function renderOtherEmployees(currentId) {
       <div class="employee-card__photo-wrap">
         <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
       </div>
-      <h2 class="employee-card__name">${emp.name}</h2>
-      <p class="employee-card__role">${emp.role}</p>
+      <h2 class="employee-card__name" data-edit-key="${emp.id}::card::name">${emp.name}</h2>
+      <p class="employee-card__role" data-edit-key="${emp.id}::card::role">${emp.role}</p>
     `;
     card.addEventListener('click', () => openPortfolio(emp.id));
     otherEmployeesGrid.appendChild(card);
   });
+
+  // Ensure cards are editable/restored too
+  applyEditable();
 }
 
 function renderCards() {
@@ -179,12 +196,14 @@ function renderCards() {
       <div class="employee-card__photo-wrap">
         <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
       </div>
-      <h2 class="employee-card__name">${emp.name}</h2>
-      <p class="employee-card__role">${emp.role}</p>
+      <h2 class="employee-card__name" data-edit-key="${emp.id}::card::name">${emp.name}</h2>
+      <p class="employee-card__role" data-edit-key="${emp.id}::card::role">${emp.role}</p>
     `;
     card.addEventListener('click', () => openPortfolio(emp.id));
     cardsGrid.appendChild(card);
   });
+
+  applyEditable();
 }
 
 function switchView(toPortfolio) {
@@ -364,5 +383,178 @@ function initFromHash() {
   }
 }
 
+// ----------------- Editing helpers -----------------
+
+function loadSavedEdits() {
+  try {
+    const raw = localStorage.getItem(EDIT_KEY);
+    if (raw) savedEdits = JSON.parse(raw);
+  } catch (e) {
+    console.warn('Failed to parse saved edits', e);
+  }
+}
+
+function saveNow() {
+  const items = {};
+  document.querySelectorAll('[data-edit-key]').forEach((el) => {
+    const key = el.dataset.editKey;
+    if (!key) return;
+    const val = el.innerHTML;
+    // only save when changed from original
+    if (originalContents[key] && originalContents[key] !== val) {
+      items[key] = val;
+      el.classList.add('edited');
+    } else if (savedEdits.items[key]) {
+      // remove stale saved value
+      // do nothing here; cleanup below
+    }
+  });
+
+  // merge with existing to preserve any items outside current render
+  savedEdits.items = Object.assign({}, savedEdits.items || {}, items);
+  // cleanup: remove keys that are equal to originalContents
+  Object.keys(savedEdits.items).forEach((k) => {
+    if (originalContents[k] && originalContents[k] === savedEdits.items[k]) {
+      delete savedEdits.items[k];
+    }
+  });
+
+  savedEdits.timestamp = Date.now();
+  localStorage.setItem(EDIT_KEY, JSON.stringify(savedEdits));
+  const s = document.getElementById('autosaveStatus');
+  if (s) {
+    s.textContent = `Сохранено ${new Date(savedEdits.timestamp).toLocaleTimeString()}`;
+  }
+}
+
+function startAutosave() {
+  if (autosaveTimer) clearInterval(autosaveTimer);
+  autosaveTimer = setInterval(saveNow, AUTOSAVE_MS);
+}
+
+function applyEditable() {
+  // capture original contents for currently rendered editable elements
+  document.querySelectorAll('[data-edit-key]').forEach((el) => {
+    const key = el.dataset.editKey;
+    if (!key) return;
+    // store original if not already stored
+    if (!(key in originalContents)) originalContents[key] = el.innerHTML;
+    // restore saved if exists
+    if (savedEdits.items && savedEdits.items[key]) {
+      el.innerHTML = savedEdits.items[key];
+      el.classList.add('edited');
+    }
+    // make editable attributes
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('input', () => {
+      const now = el.innerHTML;
+      if (originalContents[key] !== now) el.classList.add('edited');
+      else el.classList.remove('edited');
+    });
+    // allow keyboard paste/enter in editable elements
+    el.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveNow();
+      }
+    });
+    // toggle contentEditable based on editMode
+    el.contentEditable = editMode ? 'true' : 'false';
+    el.classList.toggle('editable', editMode);
+  });
+}
+
+function toggleEditMode() {
+  editMode = !editMode;
+  document.querySelectorAll('[data-edit-key]').forEach((el) => {
+    el.contentEditable = editMode ? 'true' : 'false';
+    el.classList.toggle('editable', editMode);
+  });
+  const btn = document.getElementById('editToggle');
+  if (btn) btn.textContent = editMode ? 'Выйти из ред.' : 'Редактировать';
+}
+
+function exportToHtml() {
+  // Export entire portfolio view HTML including highlighting for .edited
+  const docHtml = `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Export — Portfolio</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+/* Highlight edited fields */
+.edited { background: #fff59d !important; }
+</style>
+</head>
+<body>
+<div id="export-root">
+${document.getElementById('app').outerHTML}
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([docHtml], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `portfolio-export-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// Create simple controls in header
+function createEditorControls() {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+  const controls = document.createElement('div');
+  controls.id = 'editorControls';
+  controls.style.display = 'flex';
+  controls.style.gap = '0.5rem';
+  controls.style.alignItems = 'center';
+
+  controls.innerHTML = `
+    <button id="editToggle" type="button">Редактировать</button>
+    <button id="saveNow" type="button">Сохранить сейчас</button>
+    <button id="exportHtml" type="button">Экспорт HTML</button>
+    <span id="autosaveStatus" style="font-size:0.9rem; opacity:0.7; margin-left:0.5rem"></span>
+  `;
+  header.appendChild(controls);
+  document.getElementById('editToggle').addEventListener('click', () => toggleEditMode());
+  document.getElementById('saveNow').addEventListener('click', () => saveNow());
+  document.getElementById('exportHtml').addEventListener('click', () => exportToHtml());
+}
+
+// Init
+loadSavedEdits();
+createEditorControls();
+startAutosave();
+
+window.addEventListener('beforeunload', () => {
+  saveNow();
+});
+
+function initFromHash() {
+  const hash = location.hash.slice(1);
+  if (hash) {
+    const employee = employees.find((e) => e.id === hash);
+    if (employee) {
+      renderPortfolio(employee);
+      homeView.hidden = true;
+      homeView.classList.remove('view--active');
+      portfolioView.hidden = false;
+      portfolioView.classList.add('view--active');
+      backBtn.style.display = 'inline-flex';
+    } else {
+      backBtn.style.display = 'none';
+    }
+  } else {
+    backBtn.style.display = 'none';
+  }
+}
+
 renderCards();
 initFromHash();
+applyEditable();
