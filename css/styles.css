@@ -261,6 +261,7 @@ body {
   animation: fadeUp 0.6s 0.4s both;
 }
 
+.portfolio__download-btn,
 .portfolio__contact-btn {
   display: inline-flex;
   align-items: center;
@@ -276,6 +277,13 @@ body {
   text-decoration: none;
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.portfolio__download-btn:hover,
+.portfolio__contact-btn:hover {
+  background: var(--color-accent);
+  color: var(--color-btn-text);
+  transform: translateY(-2px);
 }
 
 .portfolio__contact-btn:hover {
@@ -941,46 +949,7 @@ body {
   /* 32px */
 }
 
-/* ===== PDF download button ===== */
-.portfolio__download-wrap {
-  display: flex;
-  justify-content: center;
-  margin-top: 3rem;
-  /* 48px */
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  /* 32px */
-  border-top: 1px solid var(--color-card-border);
-  border-bottom: 1px solid var(--color-card-border);
-  animation: fadeUp 0.6s 0.5s both;
-  transition: border-color var(--transition);
-}
-
-.portfolio__download-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  /* 8px */
-  font-family: var(--font);
-  font-weight: 500;
-  font-size: var(--tag-size);
-  line-height: var(--tag-lh);
-  padding: 0.75rem 1.5rem;
-  /* 12px 24px */
-  border: 1px solid var(--color-btn-border);
-  border-radius: var(--radius-tag);
-  background: var(--color-btn-bg);
-  color: var(--color-btn-text);
-  text-decoration: none;
-  cursor: pointer;
-  transition: opacity var(--transition-fast), transform var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.portfolio__download-btn:hover {
-  opacity: 0.88;
-  transform: translateY(-0.0625rem);
-  /* -1px */
-}
+/* ===== PDF download & actions ===== */
 
 .portfolio__download-btn:disabled {
   opacity: 0.6;
