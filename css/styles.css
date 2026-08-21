@@ -178,14 +178,21 @@ body {
   animation: fadeDown 0.7s var(--transition) both;
 }
 
+/* ===== Portfolio Stage ===== */
+.portfolio-stage {
+  position: relative;
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
 /* ===== Portfolio Side Navigation Buttons ===== */
 .portfolio-side-nav {
-  position: fixed;
-  top: 50%;
+  position: absolute;
+  top: 18rem;
   transform: translateY(-50%);
-  z-index: 85;
+  z-index: 10;
   width: 3.25rem;
-  height: 10rem;
+  height: 11rem;
   border-radius: 100px;
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
@@ -200,11 +207,11 @@ body {
 }
 
 .portfolio-side-nav--prev {
-  left: 1.25rem;
+  left: -4.5rem;
 }
 
 .portfolio-side-nav--next {
-  right: 1.25rem;
+  right: -4.5rem;
 }
 
 .portfolio-side-nav:hover {
@@ -214,30 +221,31 @@ body {
   transform: translateY(-50%) scale(1.04);
 }
 
-@media (max-width: 1200px) {
-  .portfolio-side-nav {
-    height: 7rem;
-    width: 2.75rem;
-  }
+@media (max-width: 1320px) {
   .portfolio-side-nav--prev {
-    left: 0.5rem;
+    left: -2rem;
   }
   .portfolio-side-nav--next {
-    right: 0.5rem;
+    right: -2rem;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .portfolio-side-nav {
-    height: 5rem;
-    width: 2.25rem;
-    opacity: 0.35;
+    height: 7rem;
+    width: 2.75rem;
   }
   .portfolio-side-nav--prev {
     left: 0.25rem;
   }
   .portfolio-side-nav--next {
     right: 0.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .portfolio-side-nav {
+    display: none;
   }
 }
 
