@@ -155,35 +155,8 @@ function renderPortfolio(employee) {
         </div>
       </div>
     </div>
-    <div class="portfolio__nav-controls">
-      <button class="portfolio__nav-btn" id="portfolioPrevBtn" type="button" title="Предыдущий специалист" aria-label="Предыдущий специалист">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        <span>Пред.</span>
-      </button>
-      <button class="portfolio__nav-btn" id="portfolioNextBtn" type="button" title="Следующий специалист" aria-label="Следующий специалист">
-        <span>След.</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-      </button>
-    </div>
   `;
   resumeContent.appendChild(header);
-
-  const prevBtn = header.querySelector('#portfolioPrevBtn');
-  const nextBtn = header.querySelector('#portfolioNextBtn');
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      const idx = employees.findIndex((e) => e.id === employee.id);
-      const prevIdx = (idx - 1 + employees.length) % employees.length;
-      openPortfolio(employees[prevIdx].id);
-    });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      const idx = employees.findIndex((e) => e.id === employee.id);
-      const nextIdx = (idx + 1) % employees.length;
-      openPortfolio(employees[nextIdx].id);
-    });
-  }
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
@@ -630,6 +603,32 @@ window.addEventListener('scroll', () => {
 if (scrollTopBtn) {
   scrollTopBtn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+// ----- Portfolio Side Navigation Buttons -----
+const portfolioSidePrev = document.getElementById('portfolioSidePrev');
+const portfolioSideNext = document.getElementById('portfolioSideNext');
+
+if (portfolioSidePrev) {
+  portfolioSidePrev.addEventListener('click', () => {
+    if (!currentEmployeeId) return;
+    const idx = employees.findIndex((e) => e.id === currentEmployeeId);
+    if (idx !== -1) {
+      const prevIdx = (idx - 1 + employees.length) % employees.length;
+      openPortfolio(employees[prevIdx].id);
+    }
+  });
+}
+
+if (portfolioSideNext) {
+  portfolioSideNext.addEventListener('click', () => {
+    if (!currentEmployeeId) return;
+    const idx = employees.findIndex((e) => e.id === currentEmployeeId);
+    if (idx !== -1) {
+      const nextIdx = (idx + 1) % employees.length;
+      openPortfolio(employees[nextIdx].id);
+    }
   });
 }
 

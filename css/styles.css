@@ -178,36 +178,62 @@ body {
   animation: fadeDown 0.7s var(--transition) both;
 }
 
-/* ===== Portfolio Nav Controls ===== */
-.portfolio__nav-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-.portfolio__nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.85rem;
+/* ===== Portfolio Side Navigation Buttons ===== */
+.portfolio-side-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 85;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-tag);
-  font-family: var(--font);
-  font-size: var(--tag-size);
-  font-weight: 500;
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
   opacity: 0.85;
-  transition: opacity var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+  transition: opacity var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
-.portfolio__nav-btn:hover {
+.portfolio-side-nav--prev {
+  left: 2rem;
+}
+
+.portfolio-side-nav--next {
+  right: 2rem;
+}
+
+.portfolio-side-nav:hover {
   opacity: 1;
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-1px);
+  transform: translateY(-50%) scale(1.1);
+}
+
+@media (max-width: 1024px) {
+  .portfolio-side-nav--prev {
+    left: 0.75rem;
+  }
+  .portfolio-side-nav--next {
+    right: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .portfolio-side-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .portfolio-side-nav--prev {
+    left: 0.35rem;
+  }
+  .portfolio-side-nav--next {
+    right: 0.35rem;
+  }
 }
 
 /* ===== Actions Bar (PDF download + Contact) ===== */
