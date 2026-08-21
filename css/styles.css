@@ -187,13 +187,13 @@ body {
 
 /* ===== Portfolio Side Navigation Buttons ===== */
 .portfolio-side-nav {
-  position: absolute;
-  top: 18rem;
+  position: fixed;
+  top: 50%;
   transform: translateY(-50%);
-  z-index: 10;
-  width: 3.25rem;
-  height: 11rem;
-  border-radius: 100px;
+  z-index: 95;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
   color: var(--color-text);
@@ -202,50 +202,49 @@ body {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 0.5rem 1.5rem var(--color-shadow);
-  opacity: 0.22;
+  opacity: 0.35;
   transition: opacity var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), background-color var(--transition-fast);
 }
 
 .portfolio-side-nav--prev {
-  left: -4.5rem;
+  left: 1.5rem;
 }
 
 .portfolio-side-nav--next {
-  right: -4.5rem;
+  right: 1.5rem;
 }
 
 .portfolio-side-nav:hover {
-  opacity: 0.95;
+  opacity: 1;
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-50%) scale(1.04);
+  transform: translateY(-50%) scale(1.1);
 }
 
-@media (max-width: 1320px) {
+@media (max-width: 1024px) {
+  .portfolio-side-nav {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
   .portfolio-side-nav--prev {
-    left: -2rem;
+    left: 0.75rem;
   }
   .portfolio-side-nav--next {
-    right: -2rem;
+    right: 0.75rem;
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 640px) {
   .portfolio-side-nav {
-    height: 7rem;
     width: 2.75rem;
+    height: 2.75rem;
+    opacity: 0.45;
   }
   .portfolio-side-nav--prev {
-    left: 0.25rem;
+    left: 0.35rem;
   }
   .portfolio-side-nav--next {
-    right: 0.25rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .portfolio-side-nav {
-    display: none;
+    right: 0.35rem;
   }
 }
 
