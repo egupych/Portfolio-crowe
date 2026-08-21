@@ -226,15 +226,102 @@ function renderOtherEmployees(currentId) {
   });
 }
 
-function renderCards() {
+// ----- Search & Filter -----
+const searchInput = document.getElementById('searchInput');
+const searchClearBtn = document.getElementById('searchClearBtn');
+const filterChipsContainer = document.getElementById('filterChips');
+const noResultsBlock = document.getElementById('noResults');
+const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+
+let activeTag = 'Все';
+let searchQuery = '';
+
+const POPULAR_TAGS = ['Все', 'Аудит', 'МСФО', 'Контроль качества', 'Due Diligence', 'Консалтинг', 'IT General Controls'];
+
+function renderFilterChips() {
+  if (!filterChipsContainer) return;
+  filterChipsContainer.innerHTML = '';
+
+  POPULAR_TAGS.forEach((tag) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = `filter-chip ${tag === activeTag ? 'filter-chip--active' : ''}`;
+    chip.textContent = tag;
+    chip.addEventListener('click', () => {
+      activeTag = tag;
+      renderFilterChips();
+      applyFilters();
+    });
+    filterChipsContainer.appendChild(chip);
+  });
+}
+
+function applyFilters() {
+  const query = searchQuery.trim().toLowerCase();
+
+  const filtered = employees.filter((emp) => {
+    const matchesTag =
+      activeTag === 'Все' ||
+      emp.tags.some((t) => t.toLowerCase().includes(activeTag.toLowerCase()));
+
+    const matchesQuery =
+      !query ||
+      emp.name.toLowerCase().includes(query) ||
+      emp.role.toLowerCase().includes(query) ||
+      emp.tags.some((t) => t.toLowerCase().includes(query));
+
+    return matchesTag && matchesQuery;
+  });
+
+  renderCards(filtered);
+
+  if (filtered.length === 0) {
+    cardsGrid.hidden = true;
+    if (noResultsBlock) noResultsBlock.hidden = false;
+  } else {
+    cardsGrid.hidden = false;
+    if (noResultsBlock) noResultsBlock.hidden = true;
+  }
+}
+
+if (searchInput) {
+  searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    if (searchClearBtn) searchClearBtn.hidden = !searchQuery;
+    applyFilters();
+  });
+}
+
+if (searchClearBtn) {
+  searchClearBtn.addEventListener('click', () => {
+    searchQuery = '';
+    searchInput.value = '';
+    searchClearBtn.hidden = true;
+    applyFilters();
+    searchInput.focus();
+  });
+}
+
+if (resetFiltersBtn) {
+  resetFiltersBtn.addEventListener('click', () => {
+    activeTag = 'Все';
+    searchQuery = '';
+    if (searchInput) searchInput.value = '';
+    if (searchClearBtn) searchClearBtn.hidden = true;
+    renderFilterChips();
+    applyFilters();
+  });
+}
+
+function renderCards(list = employees) {
   cardsGrid.innerHTML = '';
-  employees.forEach((emp, i) => {
+  list.forEach((emp, i) => {
     const card = document.createElement('article');
     card.className = 'employee-card';
     if (viewedEmployees.has(emp.id)) {
       card.classList.add('employee-card--viewed');
     }
-    card.style.animationDelay = `${0.08 * i}s`;
+    card.style.animationDelay = `${0.05 * i}s`;
     card.innerHTML = `
       <div class="employee-card__photo-wrap">
         <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
@@ -424,5 +511,6 @@ function initFromHash() {
   }
 }
 
+renderFilterChips();
 renderCards();
 initFromHash();
