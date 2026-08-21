@@ -155,8 +155,35 @@ function renderPortfolio(employee) {
         </div>
       </div>
     </div>
+    <div class="portfolio__nav-controls">
+      <button class="portfolio__nav-btn" id="portfolioPrevBtn" type="button" title="Предыдущий специалист" aria-label="Предыдущий специалист">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Пред.</span>
+      </button>
+      <button class="portfolio__nav-btn" id="portfolioNextBtn" type="button" title="Следующий специалист" aria-label="Следующий специалист">
+        <span>След.</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
   `;
   resumeContent.appendChild(header);
+
+  const prevBtn = header.querySelector('#portfolioPrevBtn');
+  const nextBtn = header.querySelector('#portfolioNextBtn');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      const idx = employees.findIndex((e) => e.id === employee.id);
+      const prevIdx = (idx - 1 + employees.length) % employees.length;
+      openPortfolio(employees[prevIdx].id);
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      const idx = employees.findIndex((e) => e.id === employee.id);
+      const nextIdx = (idx + 1) % employees.length;
+      openPortfolio(employees[nextIdx].id);
+    });
+  }
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
@@ -182,10 +209,10 @@ function renderPortfolio(employee) {
   resumeContent.appendChild(body);
   portfolioContent.appendChild(resumeContent);
 
-  // ----- Download PDF button (bottom of the resume) -----
-  const downloadWrap = document.createElement('div');
-  downloadWrap.className = 'portfolio__download-wrap';
-  downloadWrap.innerHTML = `
+  // ----- Actions bar (Download PDF + Contact buttons) -----
+  const actionsWrap = document.createElement('div');
+  actionsWrap.className = 'portfolio__actions-wrap';
+  actionsWrap.innerHTML = `
     <a class="portfolio__download-btn" href="PDF/${encodeURIComponent(employee.name)}.pdf" download="${employee.name} — резюме.pdf">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -193,8 +220,19 @@ function renderPortfolio(employee) {
       </svg>
       <span>Скачать резюме в PDF</span>
     </a>
+    <button class="portfolio__contact-btn" id="contactBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>Связаться со специалистом</span>
+    </button>
   `;
-  portfolioContent.appendChild(downloadWrap);
+  portfolioContent.appendChild(actionsWrap);
+
+  const contactBtn = actionsWrap.querySelector('#contactBtn');
+  if (contactBtn) {
+    contactBtn.addEventListener('click', () => openContactModal(employee.name));
+  }
 
   // ----- Certificates -----
   const certsBlock = renderCertificates(employee.name);
@@ -260,10 +298,23 @@ function renderFilterChips() {
   if (!filterChipsContainer) return;
   filterChipsContainer.innerHTML = '';
 
-  POPULAR_TAGS.forEach((tag) => {
+  const tagItems = POPULAR_TAGS.map((tag) => {
     const matchingList = getEmployeesMatchingTagAndQuery(tag, searchQuery);
-    const count = matchingList.length;
+    return { tag, count: matchingList.length };
+  });
 
+  // Sort so 'Все' is first, available tags (count > 0) are next, and disabled (count === 0) are moved to the end
+  tagItems.sort((a, b) => {
+    if (a.tag === 'Все') return -1;
+    if (b.tag === 'Все') return 1;
+    const aAvailable = a.count > 0;
+    const bAvailable = b.count > 0;
+    if (aAvailable && !bAvailable) return -1;
+    if (!aAvailable && bAvailable) return 1;
+    return 0;
+  });
+
+  tagItems.forEach(({ tag, count }) => {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = `filter-chip ${tag === activeTag ? 'filter-chip--active' : ''}`;
@@ -566,6 +617,51 @@ function initFromHash() {
   } else {
     backBtn.style.display = 'none';
   }
+}
+
+// ----- Contact Modal -----
+const contactModal = document.getElementById('contactModal');
+const contactModalOverlay = document.getElementById('contactModalOverlay');
+const contactModalClose = document.getElementById('contactModalClose');
+const contactModalSubtitle = document.getElementById('contactModalSubtitle');
+
+function openContactModal(employeeName = '') {
+  if (!contactModal) return;
+  if (contactModalSubtitle && employeeName) {
+    contactModalSubtitle.textContent = `Запрос консультации со специалистом: ${employeeName}`;
+  } else if (contactModalSubtitle) {
+    contactModalSubtitle.textContent = 'Оставьте запрос команде Crowe Uzbekistan';
+  }
+  contactModal.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeContactModal() {
+  if (!contactModal) return;
+  contactModal.hidden = true;
+  document.body.style.overflow = '';
+}
+
+if (contactModalClose) contactModalClose.addEventListener('click', closeContactModal);
+if (contactModalOverlay) contactModalOverlay.addEventListener('click', closeContactModal);
+
+// ----- Scroll To Top Button -----
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+window.addEventListener('scroll', () => {
+  if (!scrollTopBtn) return;
+  if (window.scrollY > 280) {
+    scrollTopBtn.hidden = false;
+    scrollTopBtn.classList.add('scroll-top-btn--visible');
+  } else {
+    scrollTopBtn.classList.remove('scroll-top-btn--visible');
+  }
+}, { passive: true });
+
+if (scrollTopBtn) {
+  scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 }
 
 renderFilterChips();
