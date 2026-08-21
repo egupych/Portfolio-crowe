@@ -23,6 +23,9 @@
   --logo-symbol: #F5A800;
   --logo-text: #011E41;
 
+  --color-selection-bg: #011E41;
+  --color-selection-text: #ffffff;
+
   --font: 'Geologica', sans-serif;
   --heading-size: 1.125rem;
   /* 18px */
@@ -65,6 +68,19 @@
 
   --logo-symbol: #262A33;
   --logo-text: #262A33;
+
+  --color-selection-bg: #990F3D;
+  --color-selection-text: #ffffff;
+}
+
+::selection {
+  background-color: var(--color-selection-bg);
+  color: var(--color-selection-text);
+}
+
+::-moz-selection {
+  background-color: var(--color-selection-bg);
+  color: var(--color-selection-text);
 }
 
 *,
