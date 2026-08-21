@@ -260,6 +260,7 @@ body {
   font-family: var(--font);
   font-size: var(--tag-size);
   font-weight: 500;
+  text-decoration: none;
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
