@@ -236,44 +236,63 @@ const resetFiltersBtn = document.getElementById('resetFiltersBtn');
 let activeTag = 'Все';
 let searchQuery = '';
 
-const POPULAR_TAGS = ['Все', 'Аудит', 'МСФО', 'Контроль качества', 'Due Diligence', 'Консалтинг', 'IT General Controls'];
+const POPULAR_TAGS = ['Все', 'Аудит', 'МСФО', 'Контроль качества', 'Due Diligence', 'Консалтинг', 'IT General Controls', 'Налоги'];
+
+function getEmployeesMatchingTagAndQuery(tag, query) {
+  const q = query.trim().toLowerCase();
+  return employees.filter((emp) => {
+    const matchesTag =
+      tag === 'Все' ||
+      emp.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase())) ||
+      emp.role.toLowerCase().includes(tag.toLowerCase());
+
+    const matchesQuery =
+      !q ||
+      emp.name.toLowerCase().includes(q) ||
+      emp.role.toLowerCase().includes(q) ||
+      emp.tags.some((t) => t.toLowerCase().includes(q));
+
+    return matchesTag && matchesQuery;
+  });
+}
 
 function renderFilterChips() {
   if (!filterChipsContainer) return;
   filterChipsContainer.innerHTML = '';
 
   POPULAR_TAGS.forEach((tag) => {
+    const matchingList = getEmployeesMatchingTagAndQuery(tag, searchQuery);
+    const count = matchingList.length;
+
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = `filter-chip ${tag === activeTag ? 'filter-chip--active' : ''}`;
-    chip.textContent = tag;
+
+    if (count === 0 && tag !== 'Все') {
+      chip.classList.add('filter-chip--disabled');
+      chip.disabled = true;
+    }
+
+    chip.innerHTML = `
+      <span>${tag}</span>
+      <span class="filter-chip__count">(${count})</span>
+    `;
+
     chip.addEventListener('click', () => {
+      if (chip.disabled) return;
       activeTag = tag;
-      renderFilterChips();
       applyFilters();
     });
+
     filterChipsContainer.appendChild(chip);
   });
 }
 
 function applyFilters() {
-  const query = searchQuery.trim().toLowerCase();
-
-  const filtered = employees.filter((emp) => {
-    const matchesTag =
-      activeTag === 'Все' ||
-      emp.tags.some((t) => t.toLowerCase().includes(activeTag.toLowerCase()));
-
-    const matchesQuery =
-      !query ||
-      emp.name.toLowerCase().includes(query) ||
-      emp.role.toLowerCase().includes(query) ||
-      emp.tags.some((t) => t.toLowerCase().includes(query));
-
-    return matchesTag && matchesQuery;
-  });
+  const filtered = getEmployeesMatchingTagAndQuery(activeTag, searchQuery);
 
   renderCards(filtered);
+  renderFilterChips();
 
   if (filtered.length === 0) {
     cardsGrid.hidden = true;

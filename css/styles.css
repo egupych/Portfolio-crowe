@@ -372,9 +372,22 @@ body {
   background: var(--color-tag-bg);
   color: var(--color-text);
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.85;
   transition: opacity var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filter-chip__count {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.filter-chip--active .filter-chip__count {
+  opacity: 0.85;
 }
 
 .filter-chip:hover {
@@ -393,6 +406,15 @@ body {
 
 .filter-chip--active:hover {
   color: var(--color-btn-text);
+}
+
+.filter-chip:disabled,
+.filter-chip--disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  border-color: var(--color-card-border) !important;
+  transform: none !important;
+  pointer-events: none;
 }
 
 .no-results {
