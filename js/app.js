@@ -363,9 +363,12 @@ function switchView(toPortfolio) {
   }
 }
 
+let currentEmployeeId = null;
+
 function openPortfolio(id) {
   const employee = employees.find((e) => e.id === id);
   if (!employee) return;
+  currentEmployeeId = id;
   viewedEmployees.add(id);
   renderPortfolio(employee);
   renderCards();
@@ -472,11 +475,44 @@ lightboxImg.addEventListener('click', () => {
   window.open(lightboxImg.src, '_blank');
 });
 
+// Global Keyboard Navigation
 document.addEventListener('keydown', (e) => {
-  if (lightbox.hidden) return;
-  if (e.key === 'Escape') closeLightbox();
-  if (e.key === 'ArrowLeft') navigateLightbox(-1);
-  if (e.key === 'ArrowRight') navigateLightbox(1);
+  // Ignore keyboard shortcuts when typing in search input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.key === 'Escape' && searchInput && searchInput.value) {
+      searchQuery = '';
+      searchInput.value = '';
+      if (searchClearBtn) searchClearBtn.hidden = true;
+      applyFilters();
+      searchInput.blur();
+    }
+    return;
+  }
+
+  // 1. Lightbox active
+  if (!lightbox.hidden) {
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+    return;
+  }
+
+  // 2. Portfolio view active
+  if (!portfolioView.hidden) {
+    if (e.key === 'Escape') {
+      switchView(false);
+      return;
+    }
+
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const idx = employees.findIndex((emp) => emp.id === currentEmployeeId);
+      if (idx !== -1) {
+        const step = e.key === 'ArrowLeft' ? -1 : 1;
+        const nextIdx = (idx + step + employees.length) % employees.length;
+        openPortfolio(employees[nextIdx].id);
+      }
+    }
+  }
 });
 
 window.addEventListener('popstate', () => {
@@ -484,6 +520,7 @@ window.addEventListener('popstate', () => {
   if (hash) {
     const employee = employees.find((e) => e.id === hash);
     if (employee) {
+      currentEmployeeId = hash;
       renderPortfolio(employee);
       if (portfolioView.hidden) switchView(true);
       return;
@@ -497,6 +534,7 @@ function initFromHash() {
   if (hash) {
     const employee = employees.find((e) => e.id === hash);
     if (employee) {
+      currentEmployeeId = hash;
       renderPortfolio(employee);
       homeView.hidden = true;
       homeView.classList.remove('view--active');
