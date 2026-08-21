@@ -8,6 +8,43 @@ const otherEmployeesGrid = document.getElementById('otherEmployeesGrid');
 const backBtn = document.getElementById('backBtn');
 const headerBackBtn = document.getElementById('headerBackBtn');
 const logoBtn = document.getElementById('logoBtn');
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+const themeToggleText = document.getElementById('themeToggleText');
+
+// Theme management
+const THEMES = ['crowe-light', 'warm'];
+const THEME_LABELS = {
+  'crowe-light': 'Тема: Crowe Light',
+  warm: 'Тема: Тёплая',
+};
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('crowe_theme') || 'crowe-light';
+  applyTheme(savedTheme);
+}
+
+function applyTheme(theme) {
+  if (!THEMES.includes(theme)) theme = 'crowe-light';
+
+  if (theme === 'crowe-light') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  if (themeToggleText) {
+    themeToggleText.textContent = THEME_LABELS[theme];
+  }
+  localStorage.setItem('crowe_theme', theme);
+}
+
+themeToggleBtn?.addEventListener('click', () => {
+  const currentTheme = localStorage.getItem('crowe_theme') || 'crowe-light';
+  const nextIndex = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
+  applyTheme(THEMES[nextIndex]);
+});
+
+initTheme();
 
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
