@@ -181,7 +181,7 @@ body {
 /* ===== Portfolio Stage ===== */
 .portfolio-stage {
   position: relative;
-  max-width: 68rem;
+  max-width: 80rem;
   margin: 0 auto;
 }
 
@@ -201,7 +201,6 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 0.5rem 1.5rem var(--color-shadow);
   opacity: 0.35;
   transition: transform var(--transition-fast);
 }
@@ -222,7 +221,7 @@ body {
 }
 
 .portfolio-side-nav:hover {
-  transform: translateY(-50%) scale(1.08);
+  transform: translateY(-50%);
 }
 
 @media (max-width: 1400px) {
