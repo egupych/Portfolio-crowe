@@ -209,7 +209,7 @@ function renderPortfolio(employee) {
   resumeContent.appendChild(body);
   portfolioContent.appendChild(resumeContent);
 
-  // ----- Actions bar (Download PDF + Contact buttons) -----
+  // ----- Actions bar (Download PDF + Direct Telegram link) -----
   const actionsWrap = document.createElement('div');
   actionsWrap.className = 'portfolio__actions-wrap';
   actionsWrap.innerHTML = `
@@ -220,19 +220,14 @@ function renderPortfolio(employee) {
       </svg>
       <span>Скачать резюме в PDF</span>
     </a>
-    <button class="portfolio__contact-btn" id="contactBtn" type="button">
+    <a class="portfolio__contact-btn" href="https://t.me/crowe_uz" target="_blank" rel="noopener">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
       </svg>
-      <span>Связаться со специалистом</span>
-    </button>
+      <span>Написать в Telegram</span>
+    </a>
   `;
   portfolioContent.appendChild(actionsWrap);
-
-  const contactBtn = actionsWrap.querySelector('#contactBtn');
-  if (contactBtn) {
-    contactBtn.addEventListener('click', () => openContactModal(employee.name));
-  }
 
   // ----- Certificates -----
   const certsBlock = renderCertificates(employee.name);
@@ -618,32 +613,6 @@ function initFromHash() {
     backBtn.style.display = 'none';
   }
 }
-
-// ----- Contact Modal -----
-const contactModal = document.getElementById('contactModal');
-const contactModalOverlay = document.getElementById('contactModalOverlay');
-const contactModalClose = document.getElementById('contactModalClose');
-const contactModalSubtitle = document.getElementById('contactModalSubtitle');
-
-function openContactModal(employeeName = '') {
-  if (!contactModal) return;
-  if (contactModalSubtitle && employeeName) {
-    contactModalSubtitle.textContent = `Запрос консультации со специалистом: ${employeeName}`;
-  } else if (contactModalSubtitle) {
-    contactModalSubtitle.textContent = 'Оставьте запрос команде Crowe Uzbekistan';
-  }
-  contactModal.hidden = false;
-  document.body.style.overflow = 'hidden';
-}
-
-function closeContactModal() {
-  if (!contactModal) return;
-  contactModal.hidden = true;
-  document.body.style.overflow = '';
-}
-
-if (contactModalClose) contactModalClose.addEventListener('click', closeContactModal);
-if (contactModalOverlay) contactModalOverlay.addEventListener('click', closeContactModal);
 
 // ----- Scroll To Top Button -----
 const scrollTopBtn = document.getElementById('scrollTopBtn');
