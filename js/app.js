@@ -10,6 +10,74 @@ const headerBackBtn = document.getElementById('headerBackBtn');
 const logoBtn = document.getElementById('logoBtn');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeToggleText = document.getElementById('themeToggleText');
+const compareBtn = document.getElementById('compareBtn');
+const bookmarkCount = document.getElementById('bookmarkCount');
+
+// Bookmark management
+let bookmarkedEmployees = new Set();
+const BOOKMARKS_KEY = 'crowe_bookmarks';
+
+function initBookmarks() {
+  const savedBookmarks = localStorage.getItem(BOOKMARKS_KEY);
+  if (savedBookmarks) {
+    bookmarkedEmployees = new Set(JSON.parse(savedBookmarks));
+  }
+}
+
+function saveBookmarks() {
+  localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...bookmarkedEmployees]));
+  updateCompareButton();
+}
+
+function updateCompareButton() {
+  if (compareBtn && bookmarkCount) {
+    const count = bookmarkedEmployees.size;
+    bookmarkCount.textContent = count;
+    compareBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+function toggleBookmark(employeeId) {
+  if (bookmarkedEmployees.has(employeeId)) {
+    bookmarkedEmployees.delete(employeeId);
+  } else {
+    bookmarkedEmployees.add(employeeId);
+  }
+  saveBookmarks();
+  
+  // Update UI if on portfolio page
+  const bookmarkBtn = document.getElementById('bookmarkBtn');
+  if (bookmarkBtn) {
+    const isBookmarked = bookmarkedEmployees.has(employeeId);
+    bookmarkBtn.classList.toggle('portfolio__bookmark-btn--active', isBookmarked);
+    bookmarkBtn.querySelector('svg').setAttribute('fill', isBookmarked ? 'currentColor' : 'none');
+    bookmarkBtn.querySelector('span').textContent = isBookmarked ? 'В закладках' : 'Добавить в закладки';
+  }
+  
+  // Re-render filters to update bookmark count
+  renderFilterChips();
+  updateCompareButton();
+}
+
+initBookmarks();
+updateCompareButton();
+
+// Compare button functionality
+compareBtn?.addEventListener('click', () => {
+  const bookmarkedEmployeesList = employees.filter(emp => bookmarkedEmployees.has(emp.id));
+  if (bookmarkedEmployeesList.length > 0) {
+    showComparison(bookmarkedEmployeesList);
+  }
+});
+
+function showComparison(bookmarkedList) {
+  // Switch to home view and filter by bookmarks
+  activeTag = 'Закладки';
+  searchQuery = '';
+  if (searchInput) searchInput.value = '';
+  if (searchClearBtn) searchClearBtn.hidden = true;
+  applyFilters();
+}
 
 // Theme management
 const THEMES = ['crowe-light', 'warm'];
@@ -182,9 +250,12 @@ function renderPortfolio(employee) {
   resumeContent.appendChild(body);
   portfolioContent.appendChild(resumeContent);
 
-  // ----- Actions bar (Download PDF + Direct Telegram link) -----
+  // ----- Actions bar (Download PDF + Direct Telegram link + Bookmark) -----
   const actionsWrap = document.createElement('div');
   actionsWrap.className = 'portfolio__actions-wrap';
+  
+  const isBookmarked = bookmarkedEmployees.has(employee.id);
+  
   actionsWrap.innerHTML = `
     <a class="portfolio__download-btn" href="PDF/${encodeURIComponent(employee.name)}.pdf" download="${employee.name} — резюме.pdf">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -199,8 +270,18 @@ function renderPortfolio(employee) {
       </svg>
       <span>Написать в Telegram</span>
     </a>
+    <button class="portfolio__bookmark-btn ${isBookmarked ? 'portfolio__bookmark-btn--active' : ''}" id="bookmarkBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>${isBookmarked ? 'В закладках' : 'Добавить в закладки'}</span>
+    </button>
   `;
   portfolioContent.appendChild(actionsWrap);
+  
+  // Bookmark button functionality
+  const bookmarkBtn = document.getElementById('bookmarkBtn');
+  bookmarkBtn.addEventListener('click', () => toggleBookmark(employee.id));
 
   // ----- Certificates -----
   const certsBlock = renderCertificates(employee.name);
@@ -242,13 +323,14 @@ const resetFiltersBtn = document.getElementById('resetFiltersBtn');
 let activeTag = 'Все';
 let searchQuery = '';
 
-const POPULAR_TAGS = ['Все', 'Аудит', 'МСФО', 'Контроль качества', 'Due Diligence', 'Консалтинг', 'IT General Controls', 'Налоги'];
+const POPULAR_TAGS = ['Все', 'Закладки', 'Аудит', 'МСФО', 'Контроль качества', 'Due Diligence', 'Консалтинг', 'IT General Controls', 'Налоги'];
 
 function getEmployeesMatchingTagAndQuery(tag, query) {
   const q = query.trim().toLowerCase();
   return employees.filter((emp) => {
     const matchesTag =
       tag === 'Все' ||
+      tag === 'Закладки' && bookmarkedEmployees.has(emp.id) ||
       emp.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase())) ||
       emp.role.toLowerCase().includes(tag.toLowerCase());
 
@@ -320,6 +402,9 @@ function applyFilters() {
     cardsGrid.hidden = false;
     if (noResultsBlock) noResultsBlock.hidden = true;
   }
+  
+  // Update compare button when filters change
+  updateCompareButton();
 }
 
 if (searchInput) {
