@@ -350,7 +350,7 @@ export const employees = [
   {
     id: 'parvina-saidova',
     name: 'Парвина Саидова',
-    role: 'Консультант по МСФО',
+    role: 'Старший аудитор',
     photo: 'Фото профилей/Парвина Саидова.png',
     languages: ['uz', 'ru', 'uk'],
     tags: ['МСФО и НСБУ', 'Подготовка отчётов и презентаций', 'Оценка и управление рисками'],
@@ -508,7 +508,7 @@ export const employees = [
   {
     id: 'sherzodbek-abdukhalimov',
     name: 'Шерзодбек Абдухалимов',
-    role: 'Старший аудитор',
+    role: 'Консультант по МСФО',
     photo: 'Фото профилей/Шерзодбек Абдухалимов.png',
     languages: ['uz', 'ru', 'uk'],
     tags: [
@@ -570,7 +570,7 @@ export const employees = [
   {
     id: 'mirfozil-mirolimov',
     name: 'Мирфозил Миролимов',
-    role: 'Ассистент аудитора',
+    role: 'Консультант по МСФО',
     photo: 'Фото профилей/Мирфозил Миролимов.png',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Аналитика данных', 'Подготовка отчётности по МСФО'],

@@ -279,7 +279,7 @@ export const employeesEn = {
 
   'parvina-saidova': {
     name: 'Parvina Saidova',
-    role: 'IFRS Consultant',
+    role: 'Senior Auditor',
     tags: ['IFRS and NAS', 'Preparation of reports and presentations', 'Risk assessment and management'],
     left: [
       {
@@ -415,7 +415,7 @@ export const employeesEn = {
 
   'sherzodbek-abdukhalimov': {
     name: 'Sherzodbek Abdukhalimov',
-    role: 'Senior Auditor',
+    role: 'IFRS Consultant',
     tags: [
       'Investment analysis (NPV, IRR, ROCE)',
       'Preparation and analysis of financial statements (IFRS)',
@@ -469,7 +469,7 @@ export const employeesEn = {
 
   'mirfozil-mirolimov': {
     name: 'Mirfozil Mirolimov',
-    role: 'Audit Assistant',
+    role: 'IFRS Consultant',
     tags: ['Data analytics', 'IFRS reporting'],
     left: [
       {
