@@ -1,4 +1,5 @@
-import { employees, getCertificates, getFlag } from './data.js';
+import { getEmployees, getCertificates, getFlag } from './data.js';
+import { LANGS, getLang, setLang, t } from './i18n.js';
 
 const homeView = document.getElementById('homeView');
 const portfolioView = document.getElementById('portfolioView');
@@ -12,6 +13,26 @@ const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeToggleText = document.getElementById('themeToggleText');
 const compareBtn = document.getElementById('compareBtn');
 const bookmarkCount = document.getElementById('bookmarkCount');
+const langSwitch = document.getElementById('langSwitch');
+
+/** Сотрудники на текущем языке — пересобирается при переключении языка */
+let people = getEmployees(getLang());
+
+const PHOTO_PLACEHOLDER = 'Фото профилей/placeholder.svg';
+
+/** Подставляет заглушку, если фото сотрудника не загрузилось */
+function withPhotoFallback(img) {
+  if (!img) return;
+  const applyFallback = () => {
+    if (img.dataset.photoFallback) return;
+    img.dataset.photoFallback = '1';
+    img.classList.add('photo--placeholder');
+    img.src = PHOTO_PLACEHOLDER;
+  };
+  img.addEventListener('error', applyFallback, { once: true });
+  // Картинка могла отвалиться ещё до того, как повесили обработчик
+  if (img.complete && img.naturalWidth === 0) applyFallback();
+}
 
 // Bookmark management
 let bookmarkedEmployees = new Set();
@@ -51,12 +72,11 @@ function toggleBookmark(employeeId) {
     const isBookmarked = bookmarkedEmployees.has(employeeId);
     bookmarkBtn.classList.toggle('portfolio__bookmark-btn--active', isBookmarked);
     bookmarkBtn.querySelector('svg').setAttribute('fill', isBookmarked ? 'currentColor' : 'none');
-    bookmarkBtn.querySelector('span').textContent = isBookmarked ? 'В закладках' : 'Добавить в закладки';
+    bookmarkBtn.querySelector('span').textContent = t(isBookmarked ? 'portfolio.bookmarkAdded' : 'portfolio.bookmarkAdd');
   }
   
   // Re-render filters to update bookmark count
-  renderFilterChips();
-  updateCompareButton();
+  applyFilters();
 }
 
 initBookmarks();
@@ -64,27 +84,94 @@ updateCompareButton();
 
 // Compare button functionality
 compareBtn?.addEventListener('click', () => {
-  const bookmarkedEmployeesList = employees.filter(emp => bookmarkedEmployees.has(emp.id));
+  const bookmarkedEmployeesList = people.filter((emp) => bookmarkedEmployees.has(emp.id));
   if (bookmarkedEmployeesList.length > 0) {
-    showComparison(bookmarkedEmployeesList);
+    showComparison();
   }
 });
 
-function showComparison(bookmarkedList) {
+function showComparison() {
   // Switch to home view and filter by bookmarks
-  activeTag = 'Закладки';
+  activeTag = 'bookmarks';
   searchQuery = '';
   if (searchInput) searchInput.value = '';
   if (searchClearBtn) searchClearBtn.hidden = true;
   applyFilters();
+
+  // Если открыт профиль — возвращаемся к сетке, иначе отфильтрованный список не виден
+  if (!portfolioView.hidden) switchView(false);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Language management
+function setMetaContent(attr, name, value) {
+  const el = document.querySelector(`meta[${attr}="${name}"]`);
+  if (el) el.setAttribute('content', value);
+}
+
+/** Проставляет переводы во всю статическую разметку (data-i18n*) и в мета-теги */
+function applyStaticTranslations() {
+  document.documentElement.lang = t('html.lang');
+  document.title = t('meta.title');
+
+  setMetaContent('name', 'description', t('meta.description'));
+  setMetaContent('property', 'og:title', t('meta.title'));
+  setMetaContent('property', 'og:description', t('meta.description'));
+  setMetaContent('name', 'twitter:title', t('meta.title'));
+  setMetaContent('name', 'twitter:description', t('meta.description'));
+
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAria));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    el.setAttribute('title', t(el.dataset.i18nTitle));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
+  });
+  document.querySelectorAll('[data-i18n-alt]').forEach((el) => {
+    el.setAttribute('alt', t(el.dataset.i18nAlt));
+  });
+}
+
+function updateLangSwitchUI() {
+  if (!langSwitch) return;
+  const lang = getLang();
+  langSwitch.querySelectorAll('[data-lang]').forEach((btn) => {
+    const isActive = btn.dataset.lang === lang;
+    btn.classList.toggle('lang-switch__btn--active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function applyLanguage(lang) {
+  if (!LANGS.includes(lang) || lang === getLang()) return;
+
+  setLang(lang);
+  people = getEmployees(lang);
+
+  applyStaticTranslations();
+  updateLangSwitchUI();
+  applyTheme(localStorage.getItem('crowe_theme') || 'crowe-light');
+
+  // Перерисовываем всё, что построено из данных
+  applyFilters();
+  if (!portfolioView.hidden && currentEmployeeId) {
+    const employee = people.find((e) => e.id === currentEmployeeId);
+    if (employee) renderPortfolio(employee);
+  }
+}
+
+langSwitch?.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-lang]');
+  if (btn) applyLanguage(btn.dataset.lang);
+});
 
 // Theme management
 const THEMES = ['crowe-light', 'warm'];
-const THEME_LABELS = {
-  'crowe-light': 'Тема: Crowe Light',
-  warm: 'Тема: Тёплая',
-};
 
 function initTheme() {
   const savedTheme = localStorage.getItem('crowe_theme') || 'crowe-light';
@@ -101,7 +188,7 @@ function applyTheme(theme) {
   }
 
   if (themeToggleText) {
-    themeToggleText.textContent = THEME_LABELS[theme];
+    themeToggleText.textContent = t(`theme.${theme}`);
   }
   localStorage.setItem('crowe_theme', theme);
 }
@@ -178,7 +265,7 @@ function renderCertificates(name, options = {}) {
   if (!options.bare) {
     const title = document.createElement('h3');
     title.className = 'certificates__title';
-    title.textContent = 'Сертификаты';
+    title.textContent = t('certs.title');
     block.appendChild(title);
   }
 
@@ -190,9 +277,9 @@ function renderCertificates(name, options = {}) {
     card.className = 'cert-card';
     card.style.animationDelay = `${0.5 + i * 0.07}s`;
     card.innerHTML = `
-      <img class="cert-card__img" src="${src}" alt="Сертификат ${i + 1}" loading="lazy">
+      <img class="cert-card__img" src="${src}" alt="${t('certs.alt', { n: i + 1 })}" loading="lazy">
       <div class="cert-card__overlay">
-        <span class="cert-card__zoom">Увеличить</span>
+        <span class="cert-card__zoom">${t('certs.zoom')}</span>
       </div>
     `;
     card.addEventListener('click', () => openLightbox(certs, i));
@@ -217,6 +304,7 @@ function renderPortfolio(employee) {
     <div class="portfolio__info">
       <h2 class="portfolio__name">${employee.name}</h2>
       <p class="portfolio__role role">${employee.role}</p>
+      ${employee.office ? `<span class="portfolio__office">${employee.office}</span>` : ''}
       <div class="portfolio__languages">
         <div class="portfolio__flags">
           ${employee.languages.map((code) => `<img class="portfolio__flag" src="${getFlag(code)}" alt="">`).join('')}
@@ -224,14 +312,15 @@ function renderPortfolio(employee) {
       </div>
     </div>
   `;
+  withPhotoFallback(header.querySelector('.portfolio__photo'));
   resumeContent.appendChild(header);
 
   const tags = document.createElement('div');
   tags.className = 'portfolio__tags';
-  employee.tags.forEach((t) => {
+  employee.tags.forEach((tagText) => {
     const span = document.createElement('span');
     span.className = 'tag';
-    span.textContent = t;
+    span.textContent = tagText;
     tags.appendChild(span);
   });
   resumeContent.appendChild(tags);
@@ -257,24 +346,24 @@ function renderPortfolio(employee) {
   const isBookmarked = bookmarkedEmployees.has(employee.id);
   
   actionsWrap.innerHTML = `
-    <a class="portfolio__download-btn" href="PDF/${encodeURIComponent(employee.name)}.pdf" download="${employee.name} — резюме.pdf">
+    <a class="portfolio__download-btn" href="PDF/${encodeURIComponent(employee.assetName)}.pdf" download="${t('portfolio.downloadFile', { name: employee.name })}">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      <span>Скачать резюме в PDF</span>
+      <span>${t('portfolio.download')}</span>
     </a>
     <a class="portfolio__contact-btn" href="https://t.me/crowe_uz" target="_blank" rel="noopener">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
       </svg>
-      <span>Написать в Telegram</span>
+      <span>${t('portfolio.telegram')}</span>
     </a>
     <button class="portfolio__bookmark-btn ${isBookmarked ? 'portfolio__bookmark-btn--active' : ''}" id="bookmarkBtn" type="button">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="${isBookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
       </svg>
-      <span>${isBookmarked ? 'В закладках' : 'Добавить в закладки'}</span>
+      <span>${t(isBookmarked ? 'portfolio.bookmarkAdded' : 'portfolio.bookmarkAdd')}</span>
     </button>
   `;
   portfolioContent.appendChild(actionsWrap);
@@ -284,7 +373,7 @@ function renderPortfolio(employee) {
   bookmarkBtn.addEventListener('click', () => toggleBookmark(employee.id));
 
   // ----- Certificates -----
-  const certsBlock = renderCertificates(employee.name);
+  const certsBlock = renderCertificates(employee.assetName);
   if (certsBlock) portfolioContent.appendChild(certsBlock);
 
   renderOtherEmployees(employee.id);
@@ -292,7 +381,7 @@ function renderPortfolio(employee) {
 
 function renderOtherEmployees(currentId) {
   otherEmployeesGrid.innerHTML = '';
-  const otherEmployees = employees.filter((e) => e.id !== currentId);
+  const otherEmployees = people.filter((e) => e.id !== currentId);
   
   otherEmployees.forEach((emp, i) => {
     const card = document.createElement('article');
@@ -308,6 +397,7 @@ function renderOtherEmployees(currentId) {
       <h2 class="employee-card__name">${emp.name}</h2>
       <p class="employee-card__role">${emp.role}</p>
     `;
+    withPhotoFallback(card.querySelector('.employee-card__photo'));
     card.addEventListener('click', () => openPortfolio(emp.id));
     otherEmployeesGrid.appendChild(card);
   });
@@ -320,25 +410,58 @@ const filterChipsContainer = document.getElementById('filterChips');
 const noResultsBlock = document.getElementById('noResults');
 const resetFiltersBtn = document.getElementById('resetFiltersBtn');
 
-let activeTag = 'Все';
+let activeTag = 'all';
 let searchQuery = '';
 
-const POPULAR_TAGS = ['Все', 'Закладки', 'Аудит', 'МСФО', 'Контроль качества', 'Due Diligence', 'Консалтинг', 'IT General Controls', 'Налоги'];
+const SPECIAL_TAGS = ['all', 'bookmarks'];
 
-function getEmployeesMatchingTagAndQuery(tag, query) {
+/** Разбирает ключ вида `role:...` / `office:...` на тип и значение */
+function splitTag(tagKey) {
+  if (SPECIAL_TAGS.includes(tagKey)) return [tagKey, null];
+  const i = tagKey.indexOf(':');
+  return [tagKey.slice(0, i), tagKey.slice(i + 1)];
+}
+
+/** Ключи фильтров: «Все», закладки, офисы и должности из данных */
+function getFilterTags() {
+  const offices = [];
+  const roles = [];
+  people.forEach((emp) => {
+    if (emp.officeKey && !offices.includes(emp.officeKey)) offices.push(emp.officeKey);
+    if (!roles.includes(emp.roleKey)) roles.push(emp.roleKey);
+  });
+  return [
+    ...SPECIAL_TAGS,
+    ...offices.map((office) => `office:${office}`),
+    ...roles.map((role) => `role:${role}`),
+  ];
+}
+
+/** Подпись чипа: у офисов и должностей — переведённое значение с карточки */
+function getTagLabel(tagKey) {
+  if (SPECIAL_TAGS.includes(tagKey)) return t(`filter.${tagKey}`);
+  const [kind, value] = splitTag(tagKey);
+  const emp = people.find((e) => (kind === 'office' ? e.officeKey : e.roleKey) === value);
+  if (!emp) return value;
+  return kind === 'office' ? emp.office : emp.role;
+}
+
+function getEmployeesMatchingTagAndQuery(tagKey, query) {
   const q = query.trim().toLowerCase();
-  return employees.filter((emp) => {
+  const [kind, value] = splitTag(tagKey);
+
+  return people.filter((emp) => {
     const matchesTag =
-      tag === 'Все' ||
-      tag === 'Закладки' && bookmarkedEmployees.has(emp.id) ||
-      emp.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase())) ||
-      emp.role.toLowerCase().includes(tag.toLowerCase());
+      kind === 'all' ||
+      (kind === 'bookmarks' && bookmarkedEmployees.has(emp.id)) ||
+      (kind === 'office' && emp.officeKey === value) ||
+      (kind === 'role' && emp.roleKey === value);
 
     const matchesQuery =
       !q ||
       emp.name.toLowerCase().includes(q) ||
       emp.role.toLowerCase().includes(q) ||
-      emp.tags.some((t) => t.toLowerCase().includes(q));
+      emp.tags.some((tagText) => tagText.toLowerCase().includes(q));
 
     return matchesTag && matchesQuery;
   });
@@ -348,15 +471,15 @@ function renderFilterChips() {
   if (!filterChipsContainer) return;
   filterChipsContainer.innerHTML = '';
 
-  const tagItems = POPULAR_TAGS.map((tag) => {
-    const matchingList = getEmployeesMatchingTagAndQuery(tag, searchQuery);
-    return { tag, count: matchingList.length };
-  });
+  const tagItems = getFilterTags()
+    .map((tag) => ({ tag, count: getEmployeesMatchingTagAndQuery(tag, searchQuery).length }))
+    // Чип закладок появляется, только если в закладках кто-то есть
+    .filter(({ tag }) => tag !== 'bookmarks' || bookmarkedEmployees.size > 0);
 
-  // Sort so 'Все' is first, available tags (count > 0) are next, and disabled (count === 0) are moved to the end
+  // Sort so 'All' is first, available tags (count > 0) are next, and disabled (count === 0) are moved to the end
   tagItems.sort((a, b) => {
-    if (a.tag === 'Все') return -1;
-    if (b.tag === 'Все') return 1;
+    if (a.tag === 'all') return -1;
+    if (b.tag === 'all') return 1;
     const aAvailable = a.count > 0;
     const bAvailable = b.count > 0;
     if (aAvailable && !bAvailable) return -1;
@@ -369,15 +492,30 @@ function renderFilterChips() {
     chip.type = 'button';
     chip.className = `filter-chip ${tag === activeTag ? 'filter-chip--active' : ''}`;
 
-    if (count === 0 && tag !== 'Все') {
+    if (count === 0 && tag !== 'all') {
       chip.classList.add('filter-chip--disabled');
       chip.disabled = true;
     }
 
-    chip.innerHTML = `
-      <span>${tag}</span>
-      <span class="filter-chip__count">(${count})</span>
-    `;
+    if (tag === 'bookmarks') {
+      // Только иконка — подпись и счётчик уходят в aria-label и подсказку
+      const label = `${t('filter.bookmarks')} (${count})`;
+      chip.classList.add('filter-chip--bookmarks');
+      chip.setAttribute('aria-label', label);
+      chip.title = label;
+      chip.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+      `;
+    } else {
+      if (tag === 'all') chip.classList.add('filter-chip--all');
+      else if (tag.startsWith('office:')) chip.classList.add('filter-chip--office');
+      chip.innerHTML = `
+        <span>${getTagLabel(tag)}</span>
+        <span class="filter-chip__count">(${count})</span>
+      `;
+    }
 
     chip.addEventListener('click', () => {
       if (chip.disabled) return;
@@ -390,6 +528,9 @@ function renderFilterChips() {
 }
 
 function applyFilters() {
+  // Чип закладок скрыт при пустом списке — возвращаемся к «Все»
+  if (activeTag === 'bookmarks' && bookmarkedEmployees.size === 0) activeTag = 'all';
+
   const filtered = getEmployeesMatchingTagAndQuery(activeTag, searchQuery);
 
   renderCards(filtered);
@@ -427,7 +568,7 @@ if (searchClearBtn) {
 
 if (resetFiltersBtn) {
   resetFiltersBtn.addEventListener('click', () => {
-    activeTag = 'Все';
+    activeTag = 'all';
     searchQuery = '';
     if (searchInput) searchInput.value = '';
     if (searchClearBtn) searchClearBtn.hidden = true;
@@ -436,7 +577,7 @@ if (resetFiltersBtn) {
   });
 }
 
-function renderCards(list = employees) {
+function renderCards(list = people) {
   cardsGrid.innerHTML = '';
   list.forEach((emp, i) => {
     const card = document.createElement('article');
@@ -452,6 +593,7 @@ function renderCards(list = employees) {
       <h2 class="employee-card__name">${emp.name}</h2>
       <p class="employee-card__role">${emp.role}</p>
     `;
+    withPhotoFallback(card.querySelector('.employee-card__photo'));
     card.addEventListener('click', () => openPortfolio(emp.id));
     cardsGrid.appendChild(card);
   });
@@ -489,7 +631,7 @@ function switchView(toPortfolio) {
 let currentEmployeeId = null;
 
 function openPortfolio(id) {
-  const employee = employees.find((e) => e.id === id);
+  const employee = people.find((e) => e.id === id);
   if (!employee) return;
   currentEmployeeId = id;
   viewedEmployees.add(id);
@@ -628,11 +770,11 @@ document.addEventListener('keydown', (e) => {
     }
 
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      const idx = employees.findIndex((emp) => emp.id === currentEmployeeId);
+      const idx = people.findIndex((emp) => emp.id === currentEmployeeId);
       if (idx !== -1) {
         const step = e.key === 'ArrowLeft' ? -1 : 1;
-        const nextIdx = (idx + step + employees.length) % employees.length;
-        openPortfolio(employees[nextIdx].id);
+        const nextIdx = (idx + step + people.length) % people.length;
+        openPortfolio(people[nextIdx].id);
       }
     }
   }
@@ -641,7 +783,7 @@ document.addEventListener('keydown', (e) => {
 window.addEventListener('popstate', () => {
   const hash = location.hash.slice(1);
   if (hash) {
-    const employee = employees.find((e) => e.id === hash);
+    const employee = people.find((e) => e.id === hash);
     if (employee) {
       currentEmployeeId = hash;
       renderPortfolio(employee);
@@ -655,7 +797,7 @@ window.addEventListener('popstate', () => {
 function initFromHash() {
   const hash = location.hash.slice(1);
   if (hash) {
-    const employee = employees.find((e) => e.id === hash);
+    const employee = people.find((e) => e.id === hash);
     if (employee) {
       currentEmployeeId = hash;
       renderPortfolio(employee);
@@ -698,10 +840,10 @@ const portfolioSideNext = document.getElementById('portfolioSideNext');
 if (portfolioSidePrev) {
   portfolioSidePrev.addEventListener('click', () => {
     if (!currentEmployeeId) return;
-    const idx = employees.findIndex((e) => e.id === currentEmployeeId);
+    const idx = people.findIndex((e) => e.id === currentEmployeeId);
     if (idx !== -1) {
-      const prevIdx = (idx - 1 + employees.length) % employees.length;
-      openPortfolio(employees[prevIdx].id);
+      const prevIdx = (idx - 1 + people.length) % people.length;
+      openPortfolio(people[prevIdx].id);
     }
   });
 }
@@ -709,14 +851,16 @@ if (portfolioSidePrev) {
 if (portfolioSideNext) {
   portfolioSideNext.addEventListener('click', () => {
     if (!currentEmployeeId) return;
-    const idx = employees.findIndex((e) => e.id === currentEmployeeId);
+    const idx = people.findIndex((e) => e.id === currentEmployeeId);
     if (idx !== -1) {
-      const nextIdx = (idx + 1) % employees.length;
-      openPortfolio(employees[nextIdx].id);
+      const nextIdx = (idx + 1) % people.length;
+      openPortfolio(people[nextIdx].id);
     }
   });
 }
 
+applyStaticTranslations();
+updateLangSwitchUI();
 renderFilterChips();
 renderCards();
 initFromHash();
