@@ -1,4 +1,4 @@
-import { employeesEn } from './data.en.js?v=27';
+import { employeesEn } from './data.en.js?v=28';
 
 const FLAGS = {
   ru: 'Флаги/Flag_of_Russia 1.svg',

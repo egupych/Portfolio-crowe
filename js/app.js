@@ -1,7 +1,7 @@
 // ?v= обязателен: index.html версионирует только app.js, а импорты
 // без версии браузер продолжает брать из кэша. Поднимать вместе.
-import { getEmployees, getCertificates, getFlag } from './data.js?v=27';
-import { LANGS, getLang, setLang, t } from './i18n.js?v=27';
+import { getEmployees, getCertificates, getFlag } from './data.js?v=28';
+import { LANGS, getLang, setLang, t } from './i18n.js?v=28';
 
 const homeView = document.getElementById('homeView');
 const portfolioView = document.getElementById('portfolioView');
@@ -277,6 +277,9 @@ function renderCertificates(name, options = {}) {
   const displayName = options.displayName || name;
 
   certs.forEach((src, i) => {
+    const item = document.createElement('div');
+    item.className = 'cert-item';
+
     const card = document.createElement('div');
     card.className = 'cert-card';
     card.style.animationDelay = `${0.5 + i * 0.07}s`;
@@ -285,23 +288,24 @@ function renderCertificates(name, options = {}) {
       <div class="cert-card__overlay">
         <span class="cert-card__zoom">${t('certs.zoom')}</span>
       </div>
-      <button class="cert-card__pdf-btn" type="button">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span>${t('certs.download')}</span>
-      </button>
     `;
     card.addEventListener('click', () => openLightbox(certs, i));
+    item.appendChild(card);
 
-    // Клик по кнопке не должен открывать лайтбокс
-    card.querySelector('.cert-card__pdf-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      printCertificate(card, displayName, i);
-    });
+    const pdfBtn = document.createElement('button');
+    pdfBtn.type = 'button';
+    pdfBtn.className = 'cert-item__pdf-btn';
+    pdfBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>${t('certs.download')}</span>
+    `;
+    pdfBtn.addEventListener('click', () => printCertificate(item, displayName, i));
+    item.appendChild(pdfBtn);
 
-    grid.appendChild(card);
+    grid.appendChild(item);
   });
 
   block.appendChild(grid);
@@ -424,13 +428,13 @@ function printResume(employee) {
  * Печатает один сертификат. Ориентация страницы берётся из пропорций
  * изображения: среди сертификатов есть и портретные, и альбомные.
  */
-async function printCertificate(card, displayName, index) {
+async function printCertificate(item, displayName, index) {
   // Быстрый повторный клик мог оставить прошлый сертификат помеченным —
   // иначе в печать попали бы оба
-  document.querySelectorAll('.cert-card--printing').forEach((el) => el.classList.remove('cert-card--printing'));
+  document.querySelectorAll('.cert-item--printing').forEach((el) => el.classList.remove('cert-item--printing'));
   document.querySelectorAll('style[data-print-page]').forEach((el) => el.remove());
 
-  const img = card.querySelector('.cert-card__img');
+  const img = item.querySelector('.cert-card__img');
 
   // Картинки помечены loading="lazy" — до печати могут быть не загружены
   if (!img.complete || !img.naturalWidth) {
@@ -452,12 +456,12 @@ async function printCertificate(card, displayName, index) {
   document.head.appendChild(pageStyle);
 
   document.body.dataset.print = 'certificate';
-  card.classList.add('cert-card--printing');
+  item.classList.add('cert-item--printing');
   document.title = t('certs.fileName', { name: displayName, n: index + 1 });
 
   const cleanup = () => {
     document.body.removeAttribute('data-print');
-    card.classList.remove('cert-card--printing');
+    item.classList.remove('cert-item--printing');
     pageStyle.remove();
     document.title = t('meta.title');
   };
