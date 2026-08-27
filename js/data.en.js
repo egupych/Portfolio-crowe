@@ -277,8 +277,8 @@ export const employeesEn = {
     ],
   },
 
-  'parvina-saidova': {
-    name: 'Parvina Saidova',
+  'parvina-khidoyatova': {
+    name: 'Parvina Khidoyatova',
     role: 'Senior Auditor',
     tags: ['IFRS and NAS', 'Preparation of reports and presentations', 'Risk assessment and management'],
     left: [
@@ -460,7 +460,7 @@ export const employeesEn = {
       {
         title: 'Work Experience',
         items: [
-          { role: 'Senior Auditor', period: '2025 – present', company: 'Crowe Uzbekistan' },
+          { role: 'IFRS Consultant', period: '2025 – present', company: 'Crowe Uzbekistan' },
           { role: 'English Language Teacher', period: '2019 – 2021', company: 'Local Education Centers' },
         ],
       },
