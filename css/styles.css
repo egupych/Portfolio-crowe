@@ -1129,36 +1129,47 @@ body {
   /* 16px */
 }
 
-.cert-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  /* 8px */
-}
-
-.cert-item__pdf-btn {
+.cert-card__pdf-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  padding: 0.4rem 0.75rem;
-  background: transparent;
-  border: 1px solid var(--color-tag-border);
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  max-width: calc(100% - 1.5rem);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-accent);
   border-radius: var(--radius-tag);
-  color: var(--color-text);
+  color: var(--color-accent);
   font-family: var(--font);
-  font-size: 0.75rem;
-  /* 12px */
+  font-size: var(--tag-size);
   font-weight: 500;
-  line-height: 1.1;
+  white-space: nowrap;
   cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 
-.cert-item__pdf-btn:hover {
-  border-color: var(--color-accent);
+.cert-card__pdf-btn svg {
+  /* без этого flex сжимает иконку и кнопка выходит ниже основных */
+  flex-shrink: 0;
+}
+
+.cert-card__pdf-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
+}
+
+@media (hover: none) {
+  /* На тач-устройствах наведения нет — иначе кнопка была бы недоступна */
+  .cert-card__pdf-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .cert-card {
@@ -1186,6 +1197,11 @@ body {
 
   .cert-card:hover .cert-card__overlay {
     opacity: 1;
+  }
+
+  .cert-card:hover .cert-card__pdf-btn {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 
@@ -1783,9 +1799,9 @@ body {
   /* ----- Печать одного сертификата ----- */
   body[data-print="certificate"] #resumeContent,
   body[data-print="certificate"] .certificates__title,
-  body[data-print="certificate"] .cert-item:not(.cert-item--printing),
+  body[data-print="certificate"] .cert-card:not(.cert-card--printing),
   body[data-print="certificate"] .cert-card__overlay,
-  body[data-print="certificate"] .cert-item__pdf-btn {
+  body[data-print="certificate"] .cert-card__pdf-btn {
     display: none !important;
   }
 
