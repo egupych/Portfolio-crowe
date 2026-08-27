@@ -1657,7 +1657,6 @@ body {
 
   /* ----- Шапка ----- */
   .portfolio__header {
-    justify-content: flex-start;
     gap: 8mm;
     margin-bottom: 5mm;
     flex-wrap: nowrap;
@@ -1697,7 +1696,6 @@ body {
 
   /* ----- Теги ----- */
   .portfolio__tags {
-    justify-content: flex-start;
     gap: 1.5mm;
     margin-bottom: 5mm;
   }
