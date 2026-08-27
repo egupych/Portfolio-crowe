@@ -1594,3 +1594,159 @@ body {
     /* 2px 6px */
   }
 }
+/* ===== Печать: резюме на одну страницу A4 landscape ===== */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  /* Печатаем на белом независимо от выбранной темы */
+  :root,
+  :root[data-theme="warm"] {
+    --color-text: #011E41;
+    --color-bg: #FFFFFF;
+    --color-accent: #011E41;
+    --color-card-bg: #FFFFFF;
+    --color-card-border: rgba(1, 30, 65, 0.3);
+    --color-tag-border: rgba(1, 30, 65, 0.3);
+    --color-tag-bg: transparent;
+  }
+
+  html,
+  body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* В печать идёт только резюме */
+  .page-bg,
+  .site-header,
+  #homeView,
+  .portfolio-side-nav,
+  .other-employees,
+  .portfolio__actions-wrap,
+  .certificates,
+  .scroll-top-btn,
+  .lightbox {
+    display: none !important;
+  }
+
+  /* Анимации при печати не проигрываются: без сброса элементы
+     ушли бы в PDF прозрачными и смещёнными */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  #app,
+  .view,
+  .portfolio-stage,
+  .portfolio {
+    max-width: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ----- Шапка ----- */
+  .portfolio__header {
+    justify-content: flex-start;
+    gap: 8mm;
+    margin-bottom: 5mm;
+    flex-wrap: nowrap;
+  }
+
+  .portfolio__photo {
+    width: 30mm;
+    height: 30mm;
+    border-width: 0.3mm;
+  }
+
+  .portfolio__name {
+    font-size: 18pt;
+    margin-bottom: 1.5mm;
+  }
+
+  .portfolio__role {
+    font-size: 11pt;
+    margin-bottom: 2.5mm;
+  }
+
+  /* Фон в печати обычно отключён — заливку меняем на контур,
+     иначе белый текст на белом станет невидимым */
+  .portfolio__office {
+    background: transparent;
+    color: var(--color-text);
+    border: 0.3mm solid var(--color-text);
+    font-size: 8pt;
+    padding: 0.8mm 2.5mm;
+    margin-bottom: 2.5mm;
+  }
+
+  .portfolio__flag {
+    width: 7mm;
+    height: 5mm;
+  }
+
+  /* ----- Теги ----- */
+  .portfolio__tags {
+    justify-content: flex-start;
+    gap: 1.5mm;
+    margin-bottom: 5mm;
+  }
+
+  .tag {
+    font-size: 7.5pt;
+    padding: 1mm 2.5mm;
+    border-width: 0.25mm;
+  }
+
+  /* ----- Две колонки ----- */
+  .portfolio__body {
+    grid-template-columns: 1fr 1fr;
+    gap: 4mm 9mm;
+  }
+
+  .portfolio__section {
+    margin-bottom: 4mm;
+    break-inside: avoid;
+  }
+
+  .portfolio__section-title {
+    font-size: 9.5pt;
+    margin-bottom: 1.5mm;
+  }
+
+  .text,
+  .portfolio__list {
+    font-size: 7.5pt;
+    line-height: 1.35;
+  }
+
+  .portfolio__section p {
+    margin-bottom: 1.5mm;
+  }
+
+  .portfolio__list {
+    gap: 1mm;
+  }
+
+  .portfolio__experience-item {
+    margin-bottom: 1.5mm;
+  }
+
+  .portfolio__experience-role {
+    font-size: 8pt;
+  }
+
+  .portfolio__experience-meta {
+    font-size: 7pt;
+  }
+}

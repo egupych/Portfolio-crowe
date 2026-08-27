@@ -346,13 +346,13 @@ function renderPortfolio(employee) {
   const isBookmarked = bookmarkedEmployees.has(employee.id);
   
   actionsWrap.innerHTML = `
-    <a class="portfolio__download-btn" href="PDF/${encodeURIComponent(employee.assetName)}.pdf" download="${t('portfolio.downloadFile', { name: employee.name })}">
+    <button class="portfolio__download-btn" id="downloadPdfBtn" type="button">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M10 2.5V12.5M10 12.5L6.25 8.75M10 12.5L13.75 8.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
       <span>${t('portfolio.download')}</span>
-    </a>
+    </button>
     <a class="portfolio__contact-btn" href="https://t.me/crowe_uz" target="_blank" rel="noopener">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -372,11 +372,34 @@ function renderPortfolio(employee) {
   const bookmarkBtn = document.getElementById('bookmarkBtn');
   bookmarkBtn.addEventListener('click', () => toggleBookmark(employee.id));
 
+  document.getElementById('downloadPdfBtn')?.addEventListener('click', () => printResume(employee));
+
   // ----- Certificates -----
   const certsBlock = renderCertificates(employee.assetName);
   if (certsBlock) portfolioContent.appendChild(certsBlock);
 
   renderOtherEmployees(employee.id);
+}
+
+/**
+ * Резюме формируется браузером из текущей вёрстки (см. @media print),
+ * поэтому оно всегда на том языке, который выбран на сайте.
+ * Имя файла в диалоге «Сохранить как PDF» браузер берёт из document.title.
+ */
+function printResume(employee) {
+  document.title = t('portfolio.downloadFile', { name: employee.name }).replace(/\.pdf$/i, '');
+
+  // Возвращаем заголовок из словаря, а не из сохранённого значения: иначе
+  // повторный клик или смена языка во время печати оставят имя файла в титуле
+  const restoreTitle = () => {
+    document.title = t('meta.title');
+  };
+  window.addEventListener('afterprint', restoreTitle, { once: true });
+
+  window.print();
+
+  // Safari не всегда шлёт afterprint — подстраховываемся
+  setTimeout(restoreTitle, 500);
 }
 
 function renderOtherEmployees(currentId) {
