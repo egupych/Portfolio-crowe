@@ -48,6 +48,8 @@ const STRINGS = {
 
     'certs.title': 'Certificates',
     'certs.zoom': 'Zoom in',
+    'certs.download': 'Download as PDF',
+    'certs.fileName': '{name} — certificate {n}',
     'certs.alt': 'Certificate {n}',
     'certs.altGeneric': 'Certificate',
 
@@ -97,6 +99,8 @@ const STRINGS = {
 
     'certs.title': 'Сертификаты',
     'certs.zoom': 'Увеличить',
+    'certs.download': 'Скачать в PDF',
+    'certs.fileName': '{name} — сертификат {n}',
     'certs.alt': 'Сертификат {n}',
     'certs.altGeneric': 'Сертификат',
 

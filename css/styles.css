@@ -1129,6 +1129,38 @@ body {
   /* 16px */
 }
 
+.cert-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* 8px */
+}
+
+.cert-item__pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-tag-border);
+  border-radius: var(--radius-tag);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  /* 12px */
+  font-weight: 500;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.cert-item__pdf-btn:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-btn-text);
+}
+
 .cert-card {
   position: relative;
   overflow: hidden;
@@ -1746,5 +1778,43 @@ body {
 
   .portfolio__experience-meta {
     font-size: 7pt;
+  }
+
+  /* ----- Печать одного сертификата ----- */
+  body[data-print="certificate"] #resumeContent,
+  body[data-print="certificate"] .certificates__title,
+  body[data-print="certificate"] .cert-item:not(.cert-item--printing),
+  body[data-print="certificate"] .cert-card__overlay,
+  body[data-print="certificate"] .cert-item__pdf-btn {
+    display: none !important;
+  }
+
+  body[data-print="certificate"] .certificates {
+    display: block !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  body[data-print="certificate"] .certificates__grid {
+    display: block;
+  }
+
+  body[data-print="certificate"] .cert-card {
+    aspect-ratio: auto;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+    cursor: auto;
+  }
+
+  /* max-height задаётся при печати — зависит от ориентации страницы */
+  body[data-print="certificate"] .cert-card__img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    object-fit: contain;
   }
 }
