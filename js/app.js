@@ -1,7 +1,5 @@
-// ?v= обязателен: index.html версионирует только app.js, а импорты
-// без версии браузер продолжает брать из кэша. Поднимать вместе.
-import { getEmployees, getCertificates, getFlag } from './data.js?v=28';
-import { LANGS, getLang, setLang, t } from './i18n.js?v=28';
+import { getEmployees, getCertificates, getFlag, normalizeSearch } from './data.js';
+import { LANGS, getLang, setLang, t } from './i18n.js';
 
 const homeView = document.getElementById('homeView');
 const portfolioView = document.getElementById('portfolioView');
@@ -9,7 +7,6 @@ const cardsGrid = document.getElementById('cardsGrid');
 const portfolioContent = document.getElementById('portfolioContent');
 const otherEmployeesGrid = document.getElementById('otherEmployeesGrid');
 const backBtn = document.getElementById('backBtn');
-const headerBackBtn = document.getElementById('headerBackBtn');
 const logoBtn = document.getElementById('logoBtn');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeToggleText = document.getElementById('themeToggleText');
@@ -20,7 +17,7 @@ const langSwitch = document.getElementById('langSwitch');
 /** Сотрудники на текущем языке — пересобирается при переключении языка */
 let people = getEmployees(getLang());
 
-const PHOTO_PLACEHOLDER = 'Фото профилей/placeholder.svg';
+const PHOTO_PLACEHOLDER = '/Фото профилей/placeholder.svg';
 
 /** Подставляет заглушку, если фото сотрудника не загрузилось */
 function withPhotoFallback(img) {
@@ -36,19 +33,42 @@ function withPhotoFallback(img) {
   if (img.complete && img.naturalWidth === 0) applyFallback();
 }
 
-// Bookmark management
-let bookmarkedEmployees = new Set();
-const BOOKMARKS_KEY = 'crowe_bookmarks';
-
-function initBookmarks() {
-  const savedBookmarks = localStorage.getItem(BOOKMARKS_KEY);
-  if (savedBookmarks) {
-    bookmarkedEmployees = new Set(JSON.parse(savedBookmarks));
+/** Множество id из localStorage; если хранилище недоступно или битое — пустое */
+function readIdSet(key) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(key));
+    return new Set(Array.isArray(saved) ? saved : []);
+  } catch {
+    return new Set();
   }
 }
 
+function writeIdSet(key, ids) {
+  try {
+    localStorage.setItem(key, JSON.stringify([...ids]));
+  } catch {
+    /* приватный режим — просто не сохраняем */
+  }
+}
+
+/**
+ * Системная настройка «меньше движения». Читаем через matchMedia, а не один раз:
+ * пользователь может переключить её, не перезагружая страницу.
+ */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/** Плавная прокрутка только если движение не отключено */
+const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
+
+/** Пауза между сменой видов — при отключённом движении ждать нечего */
+const viewTransitionMs = () => (reducedMotion.matches ? 0 : 300);
+
+// Bookmark management
+const BOOKMARKS_KEY = 'crowe_bookmarks';
+const bookmarkedEmployees = readIdSet(BOOKMARKS_KEY);
+
 function saveBookmarks() {
-  localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...bookmarkedEmployees]));
+  writeIdSet(BOOKMARKS_KEY, bookmarkedEmployees);
   updateCompareButton();
 }
 
@@ -81,7 +101,6 @@ function toggleBookmark(employeeId) {
   applyFilters();
 }
 
-initBookmarks();
 updateCompareButton();
 
 // Compare button functionality
@@ -102,7 +121,7 @@ function showComparison() {
 
   // Если открыт профиль — возвращаемся к сетке, иначе отфильтрованный список не виден
   if (!portfolioView.hidden) switchView(false);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: scrollBehavior() });
 }
 
 // Language management
@@ -114,7 +133,7 @@ function setMetaContent(attr, name, value) {
 /** Проставляет переводы во всю статическую разметку (data-i18n*) и в мета-теги */
 function applyStaticTranslations() {
   document.documentElement.lang = t('html.lang');
-  document.title = t('meta.title');
+  updateDocumentTitle();
 
   setMetaContent('name', 'description', t('meta.description'));
   setMetaContent('property', 'og:title', t('meta.title'));
@@ -212,8 +231,11 @@ const lightboxNext = document.getElementById('lightboxNext');
 const lightboxCounter = document.getElementById('lightboxCounter');
 
 let currentCerts = [];
+let lightboxTrigger = null;
 let currentCertIndex = 0;
-let viewedEmployees = new Set();
+/** Отметки «уже смотрел» переживают перезагрузку, как и закладки */
+const VIEWED_KEY = 'crowe_viewed';
+const viewedEmployees = readIdSet(VIEWED_KEY);
 
 function renderSection(section, delayIndex) {
   const el = document.createElement('div');
@@ -256,8 +278,8 @@ function renderSection(section, delayIndex) {
   return el;
 }
 
-function renderCertificates(name, options = {}) {
-  const certs = getCertificates(name);
+function renderCertificates(employeeId, options = {}) {
+  const certs = getCertificates(employeeId);
   if (!certs.length) return null;
 
   const block = document.createElement('div');
@@ -276,20 +298,28 @@ function renderCertificates(name, options = {}) {
 
   const displayName = options.displayName || name;
 
-  certs.forEach((src, i) => {
+  certs.forEach((cert, i) => {
     const item = document.createElement('div');
     item.className = 'cert-item';
 
     const card = document.createElement('div');
     card.className = 'cert-card';
+    card.role = 'button';
+    card.tabIndex = 0;
+    card.setAttribute('aria-label', t('certs.alt', { n: i + 1 }));
     card.style.animationDelay = `${0.5 + i * 0.07}s`;
     card.innerHTML = `
-      <img class="cert-card__img" src="${src}" alt="${t('certs.alt', { n: i + 1 })}" loading="lazy">
+      <img class="cert-card__img" src="${cert.thumb}" alt="${t('certs.alt', { n: i + 1 })}" loading="lazy">
       <div class="cert-card__overlay">
         <span class="cert-card__zoom">${t('certs.zoom')}</span>
       </div>
     `;
-    card.addEventListener('click', () => openLightbox(certs, i));
+    card.addEventListener('click', () => openLightbox(certs, i, card));
+    card.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openLightbox(certs, i, card);
+    });
     item.appendChild(card);
 
     const pdfBtn = document.createElement('button');
@@ -302,7 +332,7 @@ function renderCertificates(name, options = {}) {
       </svg>
       <span>${t('certs.download')}</span>
     `;
-    pdfBtn.addEventListener('click', () => printCertificate(item, displayName, i));
+    pdfBtn.addEventListener('click', () => printCertificate(item, cert, displayName, i));
     item.appendChild(pdfBtn);
 
     grid.appendChild(item);
@@ -324,7 +354,7 @@ function renderPortfolio(employee) {
   header.innerHTML = `
     <img class="portfolio__photo" src="${employee.photo}" alt="${employee.name}">
     <div class="portfolio__info">
-      <h2 class="portfolio__name">${employee.name}</h2>
+      <h1 class="portfolio__name">${employee.name}</h1>
       <p class="portfolio__role role">${employee.role}</p>
       ${employee.office ? `<span class="portfolio__office">${employee.office}</span>` : ''}
       <div class="portfolio__languages">
@@ -397,9 +427,10 @@ function renderPortfolio(employee) {
   document.getElementById('downloadPdfBtn')?.addEventListener('click', () => printResume(employee));
 
   // ----- Certificates -----
-  const certsBlock = renderCertificates(employee.assetName, { displayName: employee.name });
+  const certsBlock = renderCertificates(employee.id, { displayName: employee.name });
   if (certsBlock) portfolioContent.appendChild(certsBlock);
 
+  updateDocumentTitle();
   renderOtherEmployees(employee.id);
 }
 
@@ -413,9 +444,7 @@ function printResume(employee) {
 
   // Возвращаем заголовок из словаря, а не из сохранённого значения: иначе
   // повторный клик или смена языка во время печати оставят имя файла в титуле
-  const restoreTitle = () => {
-    document.title = t('meta.title');
-  };
+  const restoreTitle = updateDocumentTitle;
   window.addEventListener('afterprint', restoreTitle, { once: true });
 
   window.print();
@@ -428,7 +457,7 @@ function printResume(employee) {
  * Печатает один сертификат. Ориентация страницы берётся из пропорций
  * изображения: среди сертификатов есть и портретные, и альбомные.
  */
-async function printCertificate(item, displayName, index) {
+async function printCertificate(item, cert, displayName, index) {
   // Быстрый повторный клик мог оставить прошлый сертификат помеченным —
   // иначе в печать попали бы оба
   document.querySelectorAll('.cert-item--printing').forEach((el) => el.classList.remove('cert-item--printing'));
@@ -436,7 +465,12 @@ async function printCertificate(item, displayName, index) {
 
   const img = item.querySelector('.cert-card__img');
 
-  // Картинки помечены loading="lazy" — до печати могут быть не загружены
+  // В сетке висит превью на 400 px — на A4 его бы размазало, поэтому
+  // на время печати подставляем полноразмерную картинку
+  const thumbSrc = img.src;
+  img.src = cert.full;
+
+  // Картинка ещё и ленивая — до печати может быть не загружена
   if (!img.complete || !img.naturalWidth) {
     await new Promise((resolve) => {
       img.addEventListener('load', resolve, { once: true });
@@ -463,7 +497,8 @@ async function printCertificate(item, displayName, index) {
     document.body.removeAttribute('data-print');
     item.classList.remove('cert-item--printing');
     pageStyle.remove();
-    document.title = t('meta.title');
+    img.src = thumbSrc;
+    updateDocumentTitle();
   };
   window.addEventListener('afterprint', cleanup, { once: true });
 
@@ -539,7 +574,9 @@ function getTagLabel(tagKey) {
 }
 
 function getEmployeesMatchingTagAndQuery(tagKey, query) {
-  const q = query.trim().toLowerCase();
+  // Запрос разбиваем на слова: «аудит Ташкент» должно находить человека,
+  // у которого эти слова стоят в разных пунктах резюме
+  const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
   const [kind, value] = splitTag(tagKey);
 
   return people.filter((emp) => {
@@ -549,11 +586,9 @@ function getEmployeesMatchingTagAndQuery(tagKey, query) {
       (kind === 'office' && emp.officeKey === value) ||
       (kind === 'role' && emp.roleKey === value);
 
-    const matchesQuery =
-      !q ||
-      emp.name.toLowerCase().includes(q) ||
-      emp.role.toLowerCase().includes(q) ||
-      emp.tags.some((tagText) => tagText.toLowerCase().includes(q));
+    // emp.search — имя, роль, офис, теги и текст всех секций одной строкой.
+    // Пустой запрос даёт пустой terms, а every по нему — true
+    const matchesQuery = terms.every((term) => emp.search.includes(term));
 
     return matchesTag && matchesQuery;
   });
@@ -568,16 +603,15 @@ function renderFilterChips() {
     // Чип закладок появляется, только если в закладках кто-то есть
     .filter(({ tag }) => tag !== 'bookmarks' || bookmarkedEmployees.size > 0);
 
-  // Sort so 'All' is first, available tags (count > 0) are next, and disabled (count === 0) are moved to the end
-  tagItems.sort((a, b) => {
-    if (a.tag === 'all') return -1;
-    if (b.tag === 'all') return 1;
-    const aAvailable = a.count > 0;
-    const bAvailable = b.count > 0;
-    if (aAvailable && !bAvailable) return -1;
-    if (!aAvailable && bAvailable) return 1;
-    return 0;
-  });
+  // Порядок групп: «Все», офисы, закладки, дальше должности.
+  // Внутри группы — по убыванию счётчика, поэтому пустые (0) сами уходят в конец.
+  const chipRank = (tag) => {
+    if (tag === 'all') return 0;
+    if (tag.startsWith('office:')) return 1;
+    if (tag === 'bookmarks') return 2;
+    return 3;
+  };
+  tagItems.sort((a, b) => chipRank(a.tag) - chipRank(b.tag) || b.count - a.count);
 
   tagItems.forEach(({ tag, count }) => {
     const chip = document.createElement('button');
@@ -596,16 +630,18 @@ function renderFilterChips() {
       chip.setAttribute('aria-label', label);
       chip.title = label;
       chip.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        </svg>
+        <span class="filter-chip__label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
       `;
     } else {
       if (tag === 'all') chip.classList.add('filter-chip--all');
       else if (tag.startsWith('office:')) chip.classList.add('filter-chip--office');
       chip.innerHTML = `
-        <span>${getTagLabel(tag)}</span>
-        <span class="filter-chip__count">(${count})</span>
+        <span class="filter-chip__label">${getTagLabel(tag)}</span>
+        <span class="filter-chip__count">${count}</span>
       `;
     }
 
@@ -702,7 +738,7 @@ function switchView(toPortfolio) {
       requestAnimationFrame(() => {
         portfolioView.classList.add('view--active');
       });
-    }, 300);
+    }, viewTransitionMs());
   } else {
     backBtn.style.display = 'none';
     portfolioView.classList.remove('view--active');
@@ -715,44 +751,91 @@ function switchView(toPortfolio) {
       requestAnimationFrame(() => {
         homeView.classList.add('view--active');
       });
-    }, 300);
-    history.pushState(null, '', '#');
+    }, viewTransitionMs());
+    currentEmployeeId = null;
+    updateDocumentTitle();
+    history.pushState(null, '', '/');
   }
 }
 
 let currentEmployeeId = null;
+
+/** Профиль живёт по своему адресу — его и индексирует поиск, и разворачивают мессенджеры */
+const PROFILE_PREFIX = '/team/';
+
+const profileUrl = (id) => `${PROFILE_PREFIX}${id}`;
+
+/** id сотрудника из адреса; старые ссылки вида #id тоже понимаем */
+function employeeIdFromUrl() {
+  const path = location.pathname.replace(/\/+$/, '');
+  if (path.startsWith(PROFILE_PREFIX)) return decodeURIComponent(path.slice(PROFILE_PREFIX.length));
+  return location.hash.slice(1);
+}
+
+/** Заголовок вкладки: на странице сотрудника — его имя и должность */
+function updateDocumentTitle() {
+  const employee = currentEmployeeId && people.find((e) => e.id === currentEmployeeId);
+  document.title = employee
+    ? t('meta.personTitle', { name: employee.name, role: employee.role })
+    : t('meta.title');
+}
 
 function openPortfolio(id) {
   const employee = people.find((e) => e.id === id);
   if (!employee) return;
   currentEmployeeId = id;
   viewedEmployees.add(id);
+  writeIdSet(VIEWED_KEY, viewedEmployees);
   renderPortfolio(employee);
   renderCards();
   switchView(true);
-  history.pushState({ id }, '', `#${id}`);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  history.pushState({ id }, '', profileUrl(id));
+  window.scrollTo({ top: 0, behavior: scrollBehavior() });
 }
 
-function openLightbox(certs, index) {
+function openLightbox(certs, index, trigger) {
   currentCerts = certs;
   currentCertIndex = index;
+  lightboxTrigger = trigger || null;
   updateLightbox();
   lightbox.hidden = false;
   document.body.style.overflow = 'hidden';
+  lightboxClose.focus();
 }
 
 function closeLightbox() {
   lightbox.hidden = true;
   document.body.style.overflow = '';
   lightboxLens.style.display = 'none';
+  // Возвращаем фокус туда, откуда открыли, иначе он падает в начало страницы
+  lightboxTrigger?.focus();
+  lightboxTrigger = null;
+}
+
+/**
+ * Пока диалог открыт, Tab ходит только по его кнопкам. Стрелки листания
+ * скрыты при единственном сертификате и в обход не попадают.
+ */
+function trapLightboxFocus(e) {
+  const focusable = [lightboxClose, lightboxPrev, lightboxNext].filter((el) => !el.hidden);
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+
+  if (e.shiftKey && (active === first || !lightbox.contains(active))) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (active === last || !lightbox.contains(active))) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 function updateLightbox() {
-  lightboxImg.src = currentCerts[currentCertIndex];
+  lightboxImg.src = currentCerts[currentCertIndex].full;
   lightboxCounter.textContent = `${currentCertIndex + 1} / ${currentCerts.length}`;
-  lightboxPrev.style.visibility = currentCerts.length > 1 ? 'visible' : 'hidden';
-  lightboxNext.style.visibility = currentCerts.length > 1 ? 'visible' : 'hidden';
+  lightboxPrev.hidden = currentCerts.length < 2;
+  lightboxNext.hidden = currentCerts.length < 2;
   lightboxLens.style.display = 'none';
 }
 
@@ -828,10 +911,6 @@ lightboxImg.addEventListener('mouseleave', () => {
   lightboxLens.style.display = 'none';
 });
 
-lightboxImg.addEventListener('click', () => {
-  window.open(lightboxImg.src, '_blank');
-});
-
 // Global Keyboard Navigation
 document.addEventListener('keydown', (e) => {
   // Ignore keyboard shortcuts when typing in search input
@@ -851,6 +930,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowLeft') navigateLightbox(-1);
     if (e.key === 'ArrowRight') navigateLightbox(1);
+    if (e.key === 'Tab') trapLightboxFocus(e);
     return;
   }
 
@@ -873,37 +953,35 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('popstate', () => {
-  const hash = location.hash.slice(1);
-  if (hash) {
-    const employee = people.find((e) => e.id === hash);
-    if (employee) {
-      currentEmployeeId = hash;
-      renderPortfolio(employee);
-      if (portfolioView.hidden) switchView(true);
-      return;
-    }
+  const id = employeeIdFromUrl();
+  const employee = id ? people.find((e) => e.id === id) : null;
+  if (employee) {
+    currentEmployeeId = employee.id;
+    renderPortfolio(employee);
+    if (portfolioView.hidden) switchView(true);
+    return;
   }
   if (!portfolioView.hidden) switchView(false);
 });
 
-function initFromHash() {
-  const hash = location.hash.slice(1);
-  if (hash) {
-    const employee = people.find((e) => e.id === hash);
-    if (employee) {
-      currentEmployeeId = hash;
-      renderPortfolio(employee);
-      homeView.hidden = true;
-      homeView.classList.remove('view--active');
-      portfolioView.hidden = false;
-      portfolioView.classList.add('view--active');
-      backBtn.style.display = 'inline-flex';
-    } else {
-      backBtn.style.display = 'none';
-    }
-  } else {
+function initFromUrl() {
+  const id = employeeIdFromUrl();
+  const employee = id ? people.find((e) => e.id === id) : null;
+  if (!employee) {
     backBtn.style.display = 'none';
+    return;
   }
+
+  // Ссылки, разосланные до перехода на /team/<id>, переводим на постоянный адрес
+  if (location.hash) history.replaceState({ id: employee.id }, '', profileUrl(employee.id));
+
+  currentEmployeeId = employee.id;
+  renderPortfolio(employee);
+  homeView.hidden = true;
+  homeView.classList.remove('view--active');
+  portfolioView.hidden = false;
+  portfolioView.classList.add('view--active');
+  backBtn.style.display = 'inline-flex';
 }
 
 // ----- Scroll To Top Button -----
@@ -921,7 +999,7 @@ window.addEventListener('scroll', () => {
 
 if (scrollTopBtn) {
   scrollTopBtn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
   });
 }
 
@@ -955,4 +1033,4 @@ applyStaticTranslations();
 updateLangSwitchUI();
 renderFilterChips();
 renderCards();
-initFromHash();
+initFromUrl();

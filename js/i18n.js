@@ -13,6 +13,8 @@ const STRINGS = {
     'html.lang': 'en',
     'meta.title': 'Crowe Uzbekistan — Team Portfolio',
     'meta.description': 'Portfolio and CVs of the Crowe Uzbekistan team.',
+    'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
+    'meta.personDescription': '{name}, {role} at Crowe Uzbekistan. CV, expertise and certificates.',
 
     'header.logoAria': 'Crowe Uzbekistan',
     'header.langAria': 'Switch language',
@@ -27,7 +29,9 @@ const STRINGS = {
     'theme.crowe-light': 'Crowe Light',
     'theme.warm': 'Warm',
 
-    'search.placeholder': 'Search by name, role or expertise…',
+    'home.heading': 'Crowe Uzbekistan — Team Portfolio',
+
+    'search.placeholder': 'Search by name, role or CV content…',
     'search.aria': 'Search specialists',
     'search.clear': 'Clear search',
 
@@ -53,6 +57,7 @@ const STRINGS = {
     'certs.alt': 'Certificate {n}',
     'certs.altGeneric': 'Certificate',
 
+    'lightbox.title': 'Certificate viewer',
     'lightbox.close': 'Close',
     'lightbox.prev': 'Previous',
     'lightbox.next': 'Next',
@@ -64,6 +69,8 @@ const STRINGS = {
     'html.lang': 'ru',
     'meta.title': 'Crowe Uzbekistan — Портфолио команды',
     'meta.description': 'Портфолио и резюме команды Crowe Uzbekistan.',
+    'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
+    'meta.personDescription': '{name}, {role} в Crowe Uzbekistan. Резюме, компетенции и сертификаты.',
 
     'header.logoAria': 'Crowe Uzbekistan',
     'header.langAria': 'Переключить язык',
@@ -78,7 +85,9 @@ const STRINGS = {
     'theme.crowe-light': 'Crowe Light',
     'theme.warm': 'Тёплая',
 
-    'search.placeholder': 'Поиск по имени, роли или компетенциям…',
+    'home.heading': 'Crowe Uzbekistan — портфолио команды',
+
+    'search.placeholder': 'Поиск по имени, роли и резюме…',
     'search.aria': 'Поиск специалистов',
     'search.clear': 'Очистить поиск',
 
@@ -104,6 +113,7 @@ const STRINGS = {
     'certs.alt': 'Сертификат {n}',
     'certs.altGeneric': 'Сертификат',
 
+    'lightbox.title': 'Просмотр сертификата',
     'lightbox.close': 'Закрыть',
     'lightbox.prev': 'Предыдущий',
     'lightbox.next': 'Следующий',

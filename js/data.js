@@ -1,46 +1,48 @@
-import { employeesEn } from './data.en.js?v=28';
+import { employeesEn } from './data.en.js';
 
 const FLAGS = {
-  ru: 'Флаги/Flag_of_Russia 1.svg',
-  uk: 'Флаги/Flag_of_the_United_Kingdom_(1-2) 1.svg',
-  uz: 'Флаги/Flag_of_Uzbekistan (1) 1.svg',
-  fr: 'Флаги/Flag_of_France 1.svg',
-  it: 'Флаги/Flag_of_Italy 1.svg',
+  ru: '/Флаги/Flag_of_Russia 1.svg',
+  uk: '/Флаги/Flag_of_the_United_Kingdom_(1-2) 1.svg',
+  uz: '/Флаги/Flag_of_Uzbekistan (1) 1.svg',
+  fr: '/Флаги/Flag_of_France 1.svg',
+  it: '/Флаги/Flag_of_Italy 1.svg',
 };
 
-/** Сертификаты — только пути к изображениям */
-const CERTS = {
-  'Вера Белл': ['Вера Белл-1.png', 'Вера Белл-2.png', 'Вера Белл-3.png'],
-  'Татьяна Шукст': ['Татьяна Шукст-1.png'],
-  'Екатерина Ганова': ['Екатерина Ганова-1.png', 'Екатерина Ганова-2.png'],
-  'Дилноза Зарипова': ['Дилноза Зарипова-3.png'],
-  'Сохиба Ходжаева': ['Сохиба Ходжаева-1.png', 'Сохиба Ходжаева-2.png', 'Сохиба Ходжаева-3.png'],
-  'Парвина Хидоятова': ['Парвина Хидоятова-1.png', 'Парвина Хидоятова-2.png'],
-  'Валиджон Турсунов': ['Валиджон Турсунов-1.png'],
-  'Бекзод Аббосов': ['Бекзод Аббосов-1.png'],
-  'Шерзодбек Абдухалимов': [
-    'Шерзодбек Абдухалимов-1.png',
-    'Шерзодбек Абдухалимов-2.png',
-    'Шерзодбек Абдухалимов-3.png',
-    'Шерзодбек Абдухалимов-4.png',
+/**
+ * Сертификаты сотрудника: ключ — его id (переименование человека ничего
+ * не ломает), значение — имена файлов без расширения. Реальные картинки
+ * собирает scripts/optimize-images.py, целостность проверяет
+ * scripts/check-assets.mjs.
+ */
+export const CERTS = {
+  'vera-bell': ['Вера Белл-1', 'Вера Белл-2', 'Вера Белл-3'],
+  'tatyana-shukst': ['Татьяна Шукст-1'],
+  'ekaterina-ganova': ['Екатерина Ганова-1', 'Екатерина Ганова-2'],
+  'dilnoza-zaripova': ['Дилноза Зарипова-3'],
+  'sokhiba-khodjaeva': ['Сохиба Ходжаева-1', 'Сохиба Ходжаева-2', 'Сохиба Ходжаева-3'],
+  'parvina-khidoyatova': ['Парвина Хидоятова-1', 'Парвина Хидоятова-2'],
+  'validzhon-tursunov': ['Валиджон Турсунов-1'],
+  'bekzod-abbosov': ['Бекзод Аббосов-1'],
+  'sherzodbek-abdukhalimov': [
+    'Шерзодбек Абдухалимов-1',
+    'Шерзодбек Абдухалимов-2',
+    'Шерзодбек Абдухалимов-3',
+    'Шерзодбек Абдухалимов-4',
   ],
-  'Мирфозил Миролимов': ['Мирфозил Миролимов-1.png'],
-  'Бузурханов Акмалхон': [
-    'Бузурханов Акмалхон-1.png',
-    'Бузурханов Акмалхон-2.png',
-    'Бузурханов Акмалхон-3.png',
+  'mirfozil-mirolimov': ['Мирфозил Миролимов-1'],
+  'akmalhon-buzurkhanov': [
+    'Бузурханов Акмалхон-1',
+    'Бузурханов Акмалхон-2',
+    'Бузурханов Акмалхон-3',
   ],
-  'Татьяна Самойлова': [
-    'Татьяна Самойлова-1.png',
-    'Татьяна Самойлова-2.png',
-    'Татьяна Самойлова-3.png',
-    'Татьяна Самойлова-4.png',
+  'tatyana-samoylova': [
+    'Татьяна Самойлова-1',
+    'Татьяна Самойлова-2',
+    'Татьяна Самойлова-3',
+    'Татьяна Самойлова-4',
   ],
-  'Исломжон Казиходжаев': [
-    'Исломжон Казиходжаев-1.png',
-    'Исломжон Казиходжаев-2.png',
-  ],
-  // Сергей Секачев — сертификаты не предоставлены, блок не отрисуется
+  'islomzhon-kazikhodzhaev': ['Исломжон Казиходжаев-1', 'Исломжон Казиходжаев-2'],
+  // sergey-sekachev — сертификаты не предоставлены, блок не отрисуется
 };
 
 export const employees = [
@@ -48,7 +50,7 @@ export const employees = [
     id: 'vera-bell',
     name: 'Вера Белл',
     role: 'Управляющий партнёр',
-    photo: 'Фото профилей/Вера Белл.png',
+    photo: '/Фото профилей/webp/Вера Белл.webp',
     languages: ['ru', 'uk'],
     tags: [
       'Внедрение бухгалтерских систем',
@@ -109,7 +111,7 @@ export const employees = [
     id: 'tatyana-shukst',
     name: 'Татьяна Шукст',
     role: 'Директор аудита',
-    photo: 'Фото профилей/Татьяна Шукст.png',
+    photo: '/Фото профилей/webp/Татьяна Шукст.webp',
     languages: ['ru', 'uk', 'fr', 'it'],
     tags: [
       'Аудит и сопутствующие услуги для транснациональных групп компаний',
@@ -166,7 +168,7 @@ export const employees = [
     name: 'Екатерина Ганова',
     role: 'Директор по контролю качества',
     office: 'Crowe Россия',
-    photo: 'Фото профилей/Екатерина Ганова.png',
+    photo: '/Фото профилей/webp/Екатерина Ганова.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Контроль и анализ финансовой отчетности клиента',
@@ -220,7 +222,7 @@ export const employees = [
     id: 'dilnoza-zaripova',
     name: 'Дилноза Зарипова',
     role: 'Старший менеджер по аудиту',
-    photo: 'Фото профилей/Дилноза Зарипова.png',
+    photo: '/Фото профилей/webp/Дилноза Зарипова.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Разработка аудиторской стратегии',
@@ -285,7 +287,7 @@ export const employees = [
     id: 'sokhiba-khodjaeva',
     name: 'Сохиба Ходжаева',
     role: 'Старший менеджер по аудиту',
-    photo: 'Фото профилей/Сохиба Ходжаева.png',
+    photo: '/Фото профилей/webp/Сохиба Ходжаева.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Управление проектами и командой',
@@ -351,7 +353,7 @@ export const employees = [
     id: 'parvina-khidoyatova',
     name: 'Парвина Хидоятова',
     role: 'Старший аудитор',
-    photo: 'Фото профилей/Парвина Хидоятова.png',
+    photo: '/Фото профилей/webp/Парвина Хидоятова.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['МСФО и НСБУ', 'Подготовка отчётов и презентаций', 'Оценка и управление рисками'],
     left: [
@@ -405,7 +407,7 @@ export const employees = [
     id: 'validzhon-tursunov',
     name: 'Валиджон Турсунов',
     role: 'Консультант по МСФО',
-    photo: 'Фото профилей/Валиджон Турсунов.png',
+    photo: '/Фото профилей/webp/Валиджон Турсунов.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['МСФО и НСБУ', 'Финансовое моделирование и прогнозирование', 'Оценка и управление рисками'],
     left: [
@@ -458,7 +460,7 @@ export const employees = [
     id: 'bekzod-abbosov',
     name: 'Бекзод Аббосов',
     role: 'Консультант по МСФО',
-    photo: 'Фото профилей/Бекзод Аббосов.png',
+    photo: '/Фото профилей/webp/Бекзод Аббосов.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Трансформация', 'Налоговый аудит и анализ различных рисков', 'Финансовое моделирование и прогнозирование'],
     left: [
@@ -509,7 +511,7 @@ export const employees = [
     id: 'sherzodbek-abdukhalimov',
     name: 'Шерзодбек Абдухалимов',
     role: 'Консультант по МСФО',
-    photo: 'Фото профилей/Шерзодбек Абдухалимов.png',
+    photo: '/Фото профилей/webp/Шерзодбек Абдухалимов.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Инвестиционный анализ (NPV, IRR, ROCE)',
@@ -571,7 +573,7 @@ export const employees = [
     id: 'mirfozil-mirolimov',
     name: 'Мирфозил Миролимов',
     role: 'Консультант по МСФО',
-    photo: 'Фото профилей/Мирфозил Миролимов.png',
+    photo: '/Фото профилей/webp/Мирфозил Миролимов.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Аналитика данных', 'Подготовка отчётности по МСФО'],
     left: [
@@ -613,7 +615,7 @@ export const employees = [
     hidden: true,
     name: 'Бузурханов Акмалхон',
     role: 'Ассистент аудитора',
-    photo: 'Фото профилей/Бузурханов Акмалхон.png',
+    photo: '/Фото профилей/webp/Бузурханов Акмалхон.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Финансовая аналитика', 'Оценка и управление рисками'],
     left: [
@@ -653,7 +655,7 @@ export const employees = [
     id: 'tatyana-samoylova',
     name: 'Татьяна Самойлова',
     role: 'Старший аудитор',
-    photo: 'Фото профилей/Татьяна Самойлова.png',
+    photo: '/Фото профилей/webp/Татьяна Самойлова.webp',
     languages: ['ru', 'uk'],
     tags: [
       'Оценка и управление рисками',
@@ -726,7 +728,7 @@ export const employees = [
     id: 'islomzhon-kazikhodzhaev',
     name: 'Исломжон Казиходжаев',
     role: 'IT аудитор',
-    photo: 'Фото профилей/Исломжон Казиходжаев.png',
+    photo: '/Фото профилей/webp/Исломжон Казиходжаев.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Анализ данных и аналитические системы',
@@ -780,7 +782,7 @@ export const employees = [
     name: 'Сергей Секачев',
     role: 'Эксперт по оценке / актуарий',
     office: 'Crowe Россия',
-    photo: 'Фото профилей/Сергей Секачев.png',
+    photo: '/Фото профилей/webp/Сергей Секачев.webp',
     languages: ['ru', 'uk'],
     tags: [
       'Экспертиза в области судебной оценки',
@@ -838,10 +840,15 @@ export const employees = [
   },
 ];
 
-/** Пути к изображениям сертификатов для сотрудника */
-export function getCertificates(name) {
-  const files = CERTS[name] || [];
-  return files.map((f) => `Сертификаты/${f}`);
+/**
+ * Сертификаты сотрудника: лёгкое превью для сетки и полноразмерная
+ * картинка — она нужна только в лайтбоксе и при печати.
+ */
+export function getCertificates(id) {
+  return (CERTS[id] || []).map((file) => ({
+    thumb: `/Сертификаты/thumb/${file}.webp`,
+    full: `/Сертификаты/webp/${file}.webp`,
+  }));
 }
 
 export function getFlag(code) {
@@ -864,27 +871,53 @@ function localizeSections(baseSections = [], translatedSections = []) {
   });
 }
 
+/** Приводит строку к виду, в котором хранится поисковый индекс */
+export function normalizeSearch(text) {
+  // ё → е, иначе «учет» не находит «учёт»
+  return text.toLowerCase().replace(/ё/g, 'е');
+}
+
 /**
- * Сотрудники на выбранном языке. Поле assetName всегда хранит русское имя —
- * по нему находятся PDF-резюме и сертификаты.
+ * Плоский текст сотрудника для поиска: имя, роль, офис, теги и содержимое
+ * всех секций. Собирается уже после локализации, поэтому ищем ровно по тому
+ * языку, который показан на экране.
  */
+function buildSearchText(emp) {
+  const parts = [emp.name, emp.role, emp.office, ...(emp.tags || [])];
+
+  [...(emp.left || []), ...(emp.right || [])].forEach((section) => {
+    (section.items || []).forEach((item) => {
+      // В list и paragraphs пункты — строки, в experience — объекты
+      if (typeof item === 'string') parts.push(item);
+      else parts.push(item.role, item.company, item.period);
+    });
+  });
+
+  // Переносы строк, чтобы запрос не «склеивался» из двух соседних пунктов
+  return normalizeSearch(parts.filter(Boolean).join('\n'));
+}
+
+/** Сотрудники на выбранном языке */
 export function getEmployees(lang) {
   return employees
     .filter((emp) => !emp.hidden)
     .map((emp) => {
       // roleKey и officeKey — русские значения: не меняются при переключении
       // языка, поэтому годятся как стабильные ключи фильтра
-      const base = { ...emp, assetName: emp.name, roleKey: emp.role, officeKey: emp.office };
+      const base = { ...emp, roleKey: emp.role, officeKey: emp.office };
       const tr = lang === 'ru' ? null : employeesEn[emp.id];
-      if (!tr) return base;
-      return {
-        ...base,
-        name: tr.name ?? base.name,
-        role: tr.role ?? base.role,
-        office: tr.office ?? base.office,
-        tags: tr.tags ?? base.tags,
-        left: localizeSections(emp.left, tr.left),
-        right: localizeSections(emp.right, tr.right),
-      };
+      const localized = !tr
+        ? base
+        : {
+            ...base,
+            name: tr.name ?? base.name,
+            role: tr.role ?? base.role,
+            office: tr.office ?? base.office,
+            tags: tr.tags ?? base.tags,
+            left: localizeSections(emp.left, tr.left),
+            right: localizeSections(emp.right, tr.right),
+          };
+
+      return { ...localized, search: buildSearchText(localized) };
     });
 }
