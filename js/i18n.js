@@ -8,7 +8,8 @@ export const DEFAULT_LANG = 'en';
 
 const LANG_KEY = 'crowe_lang';
 
-const STRINGS = {
+/** Словари экспортируются ради теста на паритет ключей между языками */
+export const STRINGS = {
   en: {
     'html.lang': 'en',
     'meta.title': 'Crowe Uzbekistan — Team Portfolio',

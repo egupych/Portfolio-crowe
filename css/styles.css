@@ -788,12 +788,21 @@ body {
   /* 24px */
 }
 
+/* Карточка — ссылка на страницу профиля: сбрасываем оформление ссылки,
+   но оставляем её доступной с клавиатуры */
+.employee-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
 .employee-card {
   background: var(--color-card-bg);
   border-radius: 1rem;
   padding: 2rem;
   /* 28px 24px 24px */
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   border: 1px solid var(--color-card-border);
   display: flex;
   flex-direction: column;

@@ -506,28 +506,43 @@ async function printCertificate(item, cert, displayName, index) {
   setTimeout(cleanup, 500);
 }
 
-function renderOtherEmployees(currentId) {
-  otherEmployeesGrid.innerHTML = '';
-  const otherEmployees = people.filter((e) => e.id !== currentId);
-  
-  otherEmployees.forEach((emp, i) => {
-    const card = document.createElement('article');
-    card.className = 'employee-card';
-    if (viewedEmployees.has(emp.id)) {
-      card.classList.add('employee-card--viewed');
-    }
-    card.style.animationDelay = `${0.05 * i}s`;
-    card.innerHTML = `
+/**
+ * Карточка сотрудника — ссылка на его страницу. Так она попадает в обход
+ * с клавиатуры, открывается в новой вкладке и остаётся ссылкой для краулера;
+ * обычный клик перехватываем и показываем профиль без перезагрузки.
+ */
+function createEmployeeCard(emp, index) {
+  const card = document.createElement('a');
+  card.className = 'employee-card';
+  card.href = profileUrl(emp.id);
+  if (viewedEmployees.has(emp.id)) {
+    card.classList.add('employee-card--viewed');
+  }
+  card.style.animationDelay = `${0.05 * index}s`;
+  card.innerHTML = `
       <div class="employee-card__photo-wrap">
         <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
       </div>
       <h2 class="employee-card__name">${emp.name}</h2>
       <p class="employee-card__role">${emp.role}</p>
-    `;
-    withPhotoFallback(card.querySelector('.employee-card__photo'));
-    card.addEventListener('click', () => openPortfolio(emp.id));
-    otherEmployeesGrid.appendChild(card);
+  `;
+  withPhotoFallback(card.querySelector('.employee-card__photo'));
+
+  card.addEventListener('click', (e) => {
+    // Ctrl/Cmd/Shift и средняя кнопка — работа браузера, не перехватываем
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    openPortfolio(emp.id);
   });
+
+  return card;
+}
+
+function renderOtherEmployees(currentId) {
+  otherEmployeesGrid.innerHTML = '';
+  people
+    .filter((e) => e.id !== currentId)
+    .forEach((emp, i) => otherEmployeesGrid.appendChild(createEmployeeCard(emp, i)));
 }
 
 // ----- Search & Filter -----
@@ -707,24 +722,7 @@ if (resetFiltersBtn) {
 
 function renderCards(list = people) {
   cardsGrid.innerHTML = '';
-  list.forEach((emp, i) => {
-    const card = document.createElement('article');
-    card.className = 'employee-card';
-    if (viewedEmployees.has(emp.id)) {
-      card.classList.add('employee-card--viewed');
-    }
-    card.style.animationDelay = `${0.05 * i}s`;
-    card.innerHTML = `
-      <div class="employee-card__photo-wrap">
-        <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
-      </div>
-      <h2 class="employee-card__name">${emp.name}</h2>
-      <p class="employee-card__role">${emp.role}</p>
-    `;
-    withPhotoFallback(card.querySelector('.employee-card__photo'));
-    card.addEventListener('click', () => openPortfolio(emp.id));
-    cardsGrid.appendChild(card);
-  });
+  list.forEach((emp, i) => cardsGrid.appendChild(createEmployeeCard(emp, i)));
 }
 
 function switchView(toPortfolio) {
@@ -787,7 +785,9 @@ function openPortfolio(id) {
   viewedEmployees.add(id);
   writeIdSet(VIEWED_KEY, viewedEmployees);
   renderPortfolio(employee);
-  renderCards();
+  // Именно applyFilters, а не renderCards: иначе после возврата из профиля
+  // чип остаётся активным, а в сетке снова все
+  applyFilters();
   switchView(true);
   history.pushState({ id }, '', profileUrl(id));
   window.scrollTo({ top: 0, behavior: scrollBehavior() });
