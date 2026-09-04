@@ -76,10 +76,25 @@ test('сертификаты находятся по id и отдают прев
   const certs = getCertificates('vera-bell');
   assert.equal(certs.length, CERTS['vera-bell'].length);
   for (const cert of certs) {
-    assert.match(cert.thumb, /^\/Сертификаты\/thumb\/.+\.webp$/);
-    assert.match(cert.full, /^\/Сертификаты\/webp\/.+\.webp$/);
+    assert.match(cert.thumb, /^\/certificates\/thumb\/[a-z0-9-]+\.webp$/);
+    assert.match(cert.full, /^\/certificates\/webp\/[a-z0-9-]+\.webp$/);
   }
   assert.deepEqual(getCertificates('нет-такого'), []);
+});
+
+test('пути к картинкам — латиница без пробелов', () => {
+  // Иначе ссылка в адресной строке превращается в %D0%A4%D0%BE%D1%82%D0%BE%20...
+  const ascii = /^[a-z0-9/_.-]+$/;
+  for (const emp of employees) {
+    assert.match(emp.photo, ascii, `${emp.id}: путь к фото`);
+    for (const cert of getCertificates(emp.id)) {
+      assert.match(cert.thumb, ascii, `${emp.id}: путь к превью`);
+      assert.match(cert.full, ascii, `${emp.id}: путь к сертификату`);
+    }
+  }
+  for (const code of ['ru', 'uk', 'uz', 'fr', 'it']) {
+    assert.match(getFlag(code), ascii, `флаг ${code}`);
+  }
 });
 
 test('каждый ключ CERTS соответствует существующему сотруднику', () => {

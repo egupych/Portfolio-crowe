@@ -2,7 +2,7 @@
  * Проверяет, что данные и картинки не разъехались:
  *   - каждый ключ CERTS соответствует существующему сотруднику;
  *   - все файлы, на которые ссылаются данные, лежат на диске;
- *   - в «Сертификаты» нет исходников, которые никому не принадлежат.
+ *   - в certificates/ нет исходников, которые никому не принадлежат.
  *
  * Запуск:  node scripts/check-assets.mjs
  * Код возврата 1 — что-то не сходится.
@@ -15,7 +15,7 @@ import { employees, CERTS, getCertificates, getEmployees } from '../js/data.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const problems = [];
-// Пути в данных корневые ('/Фото профилей/...') — для диска ведущий слэш убираем
+// Пути в данных корневые ('/photos/...') — для диска ведущий слэш убираем
 const exists = (webPath) => existsSync(join(ROOT, webPath.replace(/^\//, '')));
 
 // --- Ключи CERTS: именно из-за них переименование сотрудника раньше молча
@@ -37,9 +37,9 @@ for (const emp of employees) {
 
 // --- Исходники без владельца
 const claimed = new Set(Object.values(CERTS).flat().map((file) => `${file}.png`));
-for (const file of readdirSync(join(ROOT, 'Сертификаты'))) {
+for (const file of readdirSync(join(ROOT, 'certificates'))) {
   if (file.endsWith('.png') && !claimed.has(file)) {
-    problems.push(`Сертификаты/${file} — не привязан ни к кому`);
+    problems.push(`certificates/${file} — не привязан ни к кому`);
   }
 }
 

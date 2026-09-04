@@ -1,11 +1,11 @@
 import { employeesEn } from './data.en.js';
 
 const FLAGS = {
-  ru: '/Флаги/Flag_of_Russia 1.svg',
-  uk: '/Флаги/Flag_of_the_United_Kingdom_(1-2) 1.svg',
-  uz: '/Флаги/Flag_of_Uzbekistan (1) 1.svg',
-  fr: '/Флаги/Flag_of_France 1.svg',
-  it: '/Флаги/Flag_of_Italy 1.svg',
+  ru: '/flags/ru.svg',
+  uk: '/flags/uk.svg',
+  uz: '/flags/uz.svg',
+  fr: '/flags/fr.svg',
+  it: '/flags/it.svg',
 };
 
 /**
@@ -15,33 +15,33 @@ const FLAGS = {
  * scripts/check-assets.mjs.
  */
 export const CERTS = {
-  'vera-bell': ['Вера Белл-1', 'Вера Белл-2', 'Вера Белл-3'],
-  'tatyana-shukst': ['Татьяна Шукст-1'],
-  'ekaterina-ganova': ['Екатерина Ганова-1', 'Екатерина Ганова-2'],
-  'dilnoza-zaripova': ['Дилноза Зарипова-3'],
-  'sokhiba-khodjaeva': ['Сохиба Ходжаева-1', 'Сохиба Ходжаева-2', 'Сохиба Ходжаева-3'],
-  'parvina-khidoyatova': ['Парвина Хидоятова-1', 'Парвина Хидоятова-2'],
-  'validzhon-tursunov': ['Валиджон Турсунов-1'],
-  'bekzod-abbosov': ['Бекзод Аббосов-1'],
+  'vera-bell': ['vera-bell-1', 'vera-bell-2', 'vera-bell-3'],
+  'tatyana-shukst': ['tatyana-shukst-1'],
+  'ekaterina-ganova': ['ekaterina-ganova-1', 'ekaterina-ganova-2'],
+  'dilnoza-zaripova': ['dilnoza-zaripova-3'],
+  'sokhiba-khodjaeva': ['sokhiba-khodjaeva-1', 'sokhiba-khodjaeva-2', 'sokhiba-khodjaeva-3'],
+  'parvina-khidoyatova': ['parvina-khidoyatova-1', 'parvina-khidoyatova-2'],
+  'validzhon-tursunov': ['validzhon-tursunov-1'],
+  'bekzod-abbosov': ['bekzod-abbosov-1'],
   'sherzodbek-abdukhalimov': [
-    'Шерзодбек Абдухалимов-1',
-    'Шерзодбек Абдухалимов-2',
-    'Шерзодбек Абдухалимов-3',
-    'Шерзодбек Абдухалимов-4',
+    'sherzodbek-abdukhalimov-1',
+    'sherzodbek-abdukhalimov-2',
+    'sherzodbek-abdukhalimov-3',
+    'sherzodbek-abdukhalimov-4',
   ],
-  'mirfozil-mirolimov': ['Мирфозил Миролимов-1'],
+  'mirfozil-mirolimov': ['mirfozil-mirolimov-1'],
   'akmalhon-buzurkhanov': [
-    'Бузурханов Акмалхон-1',
-    'Бузурханов Акмалхон-2',
-    'Бузурханов Акмалхон-3',
+    'akmalhon-buzurkhanov-1',
+    'akmalhon-buzurkhanov-2',
+    'akmalhon-buzurkhanov-3',
   ],
   'tatyana-samoylova': [
-    'Татьяна Самойлова-1',
-    'Татьяна Самойлова-2',
-    'Татьяна Самойлова-3',
-    'Татьяна Самойлова-4',
+    'tatyana-samoylova-1',
+    'tatyana-samoylova-2',
+    'tatyana-samoylova-3',
+    'tatyana-samoylova-4',
   ],
-  'islomzhon-kazikhodzhaev': ['Исломжон Казиходжаев-1', 'Исломжон Казиходжаев-2'],
+  'islomzhon-kazikhodzhaev': ['islomzhon-kazikhodzhaev-1', 'islomzhon-kazikhodzhaev-2'],
   // sergey-sekachev — сертификаты не предоставлены, блок не отрисуется
 };
 
@@ -50,7 +50,7 @@ export const employees = [
     id: 'vera-bell',
     name: 'Вера Белл',
     role: 'Управляющий партнёр',
-    photo: '/Фото профилей/webp/Вера Белл.webp',
+    photo: '/photos/webp/vera-bell.webp',
     languages: ['ru', 'uk'],
     tags: [
       'Внедрение бухгалтерских систем',
@@ -111,7 +111,7 @@ export const employees = [
     id: 'tatyana-shukst',
     name: 'Татьяна Шукст',
     role: 'Директор аудита',
-    photo: '/Фото профилей/webp/Татьяна Шукст.webp',
+    photo: '/photos/webp/tatyana-shukst.webp',
     languages: ['ru', 'uk', 'fr', 'it'],
     tags: [
       'Аудит и сопутствующие услуги для транснациональных групп компаний',
@@ -168,7 +168,7 @@ export const employees = [
     name: 'Екатерина Ганова',
     role: 'Директор по контролю качества',
     office: 'Crowe Россия',
-    photo: '/Фото профилей/webp/Екатерина Ганова.webp',
+    photo: '/photos/webp/ekaterina-ganova.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Контроль и анализ финансовой отчетности клиента',
@@ -222,7 +222,7 @@ export const employees = [
     id: 'dilnoza-zaripova',
     name: 'Дилноза Зарипова',
     role: 'Старший менеджер по аудиту',
-    photo: '/Фото профилей/webp/Дилноза Зарипова.webp',
+    photo: '/photos/webp/dilnoza-zaripova.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Разработка аудиторской стратегии',
@@ -287,7 +287,7 @@ export const employees = [
     id: 'sokhiba-khodjaeva',
     name: 'Сохиба Ходжаева',
     role: 'Старший менеджер по аудиту',
-    photo: '/Фото профилей/webp/Сохиба Ходжаева.webp',
+    photo: '/photos/webp/sokhiba-khodjaeva.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Управление проектами и командой',
@@ -353,7 +353,7 @@ export const employees = [
     id: 'parvina-khidoyatova',
     name: 'Парвина Хидоятова',
     role: 'Старший аудитор',
-    photo: '/Фото профилей/webp/Парвина Хидоятова.webp',
+    photo: '/photos/webp/parvina-khidoyatova.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['МСФО и НСБУ', 'Подготовка отчётов и презентаций', 'Оценка и управление рисками'],
     left: [
@@ -407,7 +407,7 @@ export const employees = [
     id: 'validzhon-tursunov',
     name: 'Валиджон Турсунов',
     role: 'Консультант по МСФО',
-    photo: '/Фото профилей/webp/Валиджон Турсунов.webp',
+    photo: '/photos/webp/validzhon-tursunov.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['МСФО и НСБУ', 'Финансовое моделирование и прогнозирование', 'Оценка и управление рисками'],
     left: [
@@ -460,7 +460,7 @@ export const employees = [
     id: 'bekzod-abbosov',
     name: 'Бекзод Аббосов',
     role: 'Консультант по МСФО',
-    photo: '/Фото профилей/webp/Бекзод Аббосов.webp',
+    photo: '/photos/webp/bekzod-abbosov.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Трансформация', 'Налоговый аудит и анализ различных рисков', 'Финансовое моделирование и прогнозирование'],
     left: [
@@ -511,7 +511,7 @@ export const employees = [
     id: 'sherzodbek-abdukhalimov',
     name: 'Шерзодбек Абдухалимов',
     role: 'Консультант по МСФО',
-    photo: '/Фото профилей/webp/Шерзодбек Абдухалимов.webp',
+    photo: '/photos/webp/sherzodbek-abdukhalimov.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Инвестиционный анализ (NPV, IRR, ROCE)',
@@ -573,7 +573,7 @@ export const employees = [
     id: 'mirfozil-mirolimov',
     name: 'Мирфозил Миролимов',
     role: 'Консультант по МСФО',
-    photo: '/Фото профилей/webp/Мирфозил Миролимов.webp',
+    photo: '/photos/webp/mirfozil-mirolimov.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Аналитика данных', 'Подготовка отчётности по МСФО'],
     left: [
@@ -615,7 +615,7 @@ export const employees = [
     hidden: true,
     name: 'Бузурханов Акмалхон',
     role: 'Ассистент аудитора',
-    photo: '/Фото профилей/webp/Бузурханов Акмалхон.webp',
+    photo: '/photos/webp/akmalhon-buzurkhanov.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: ['Финансовая аналитика', 'Оценка и управление рисками'],
     left: [
@@ -655,7 +655,7 @@ export const employees = [
     id: 'tatyana-samoylova',
     name: 'Татьяна Самойлова',
     role: 'Старший аудитор',
-    photo: '/Фото профилей/webp/Татьяна Самойлова.webp',
+    photo: '/photos/webp/tatyana-samoylova.webp',
     languages: ['ru', 'uk'],
     tags: [
       'Оценка и управление рисками',
@@ -728,7 +728,7 @@ export const employees = [
     id: 'islomzhon-kazikhodzhaev',
     name: 'Исломжон Казиходжаев',
     role: 'IT аудитор',
-    photo: '/Фото профилей/webp/Исломжон Казиходжаев.webp',
+    photo: '/photos/webp/islomzhon-kazikhodzhaev.webp',
     languages: ['uz', 'ru', 'uk'],
     tags: [
       'Анализ данных и аналитические системы',
@@ -782,7 +782,7 @@ export const employees = [
     name: 'Сергей Секачев',
     role: 'Эксперт по оценке / актуарий',
     office: 'Crowe Россия',
-    photo: '/Фото профилей/webp/Сергей Секачев.webp',
+    photo: '/photos/webp/sergey-sekachev.webp',
     languages: ['ru', 'uk'],
     tags: [
       'Экспертиза в области судебной оценки',
@@ -846,8 +846,8 @@ export const employees = [
  */
 export function getCertificates(id) {
   return (CERTS[id] || []).map((file) => ({
-    thumb: `/Сертификаты/thumb/${file}.webp`,
-    full: `/Сертификаты/webp/${file}.webp`,
+    thumb: `/certificates/thumb/${file}.webp`,
+    full: `/certificates/webp/${file}.webp`,
   }));
 }
 

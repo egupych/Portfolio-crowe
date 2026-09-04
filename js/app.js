@@ -17,7 +17,7 @@ const langSwitch = document.getElementById('langSwitch');
 /** Сотрудники на текущем языке — пересобирается при переключении языка */
 let people = getEmployees(getLang());
 
-const PHOTO_PLACEHOLDER = '/Фото профилей/placeholder.svg';
+const PHOTO_PLACEHOLDER = '/photos/placeholder.svg';
 
 /** Подставляет заглушку, если фото сотрудника не загрузилось */
 function withPhotoFallback(img) {

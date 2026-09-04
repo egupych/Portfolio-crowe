@@ -70,6 +70,16 @@ for (const employee of employees) {
   writeFileSync(join(dir, 'index.html'), buildPage(employee), 'utf8');
 }
 
+// Vercel отдаёт этот файл на несуществующие адреса. Внутри то же приложение:
+// человек попадает не на голую ошибку сервера, а на список команды.
+writeFileSync(
+  join(ROOT, '404.html'),
+  template
+    .replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(t('meta.notFound'))} | Crowe Uzbekistan</title>`)
+    .replace('</head>', `  <meta name="robots" content="noindex">${'\n'}</head>`),
+  'utf8',
+);
+
 const urls = [`${SITE}/`, ...employees.map((e) => `${SITE}/team/${e.id}`)];
 writeFileSync(
   join(ROOT, 'sitemap.xml'),
@@ -87,4 +97,4 @@ writeFileSync(
   'utf8',
 );
 
-console.log(`Страниц сотрудников: ${employees.length}, адресов в sitemap.xml: ${urls.length}`);
+console.log(`Страниц сотрудников: ${employees.length}, адресов в sitemap.xml: ${urls.length}, плюс 404.html`);

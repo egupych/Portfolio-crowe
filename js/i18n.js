@@ -14,6 +14,7 @@ export const STRINGS = {
     'html.lang': 'en',
     'meta.title': 'Crowe Uzbekistan — Team Portfolio',
     'meta.description': 'Portfolio and CVs of the Crowe Uzbekistan team.',
+    'meta.notFound': 'Page not found',
     'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
     'meta.personDescription': '{name}, {role} at Crowe Uzbekistan. CV, expertise and certificates.',
 
@@ -70,6 +71,7 @@ export const STRINGS = {
     'html.lang': 'ru',
     'meta.title': 'Crowe Uzbekistan — Портфолио команды',
     'meta.description': 'Портфолио и резюме команды Crowe Uzbekistan.',
+    'meta.notFound': 'Страница не найдена',
     'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
     'meta.personDescription': '{name}, {role} в Crowe Uzbekistan. Резюме, компетенции и сертификаты.',
 

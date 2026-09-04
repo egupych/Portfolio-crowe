@@ -5,9 +5,9 @@
     python scripts/optimize-images.py
 
 Исходники остаются на месте как архив и в вёрстке не используются:
-    Фото профилей/*.png  →  Фото профилей/webp/*.webp   384 px, q88
-    Сертификаты/*.png    →  Сертификаты/webp/*.webp     исходный размер, q90 (лайтбокс и печать)
-                         →  Сертификаты/thumb/*.webp    400 px, q80 (сетка превью)
+    photos/*.png        →  photos/webp/*.webp        384 px, q88
+    certificates/*.png  →  certificates/webp/*.webp     исходный размер, q90 (лайтбокс и печать)
+                        →  certificates/thumb/*.webp    400 px, q80 (сетка превью)
 
 Файл пересобирается, только если исходник новее — повторный запуск дешёвый.
 """
@@ -24,9 +24,9 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # (папка с исходниками, подпапка результата, максимальная сторона или None, качество)
 JOBS = [
-    ('Фото профилей', 'webp', 384, 88),
-    ('Сертификаты', 'webp', None, 90),
-    ('Сертификаты', 'thumb', 400, 80),
+    ('photos', 'webp', 384, 88),
+    ('certificates', 'webp', None, 90),
+    ('certificates', 'thumb', 400, 80),
 ]
 
 
