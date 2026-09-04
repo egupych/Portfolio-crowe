@@ -748,6 +748,227 @@ body {
   --chip-fg: var(--color-white) !important;
 }
 
+/* ===== Сравнение ===== */
+.compare {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 3rem 4rem;
+}
+
+.compare__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.compare__title {
+  font-weight: 600;
+  font-size: 1.375rem;
+  /* 22px */
+}
+
+.compare__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--tag-size);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.compare__hint {
+  margin-bottom: 1.25rem;
+  font-size: var(--tag-size);
+  opacity: 0.7;
+}
+
+/* Колонок может быть больше, чем влезает: таблица едет вбок, а не ломает вёрстку */
+.compare__scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+}
+
+.compare__table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+}
+
+.compare__table th,
+.compare__table td {
+  padding: 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid var(--color-card-border);
+  border-left: 1px solid var(--color-card-border);
+}
+
+.compare__table thead th,
+.compare__corner {
+  border-top: 0;
+}
+
+.compare__table th:first-child,
+.compare__table td:first-child {
+  border-left: 0;
+}
+
+/* Подпись строки держится на месте при боковой прокрутке */
+.compare__label,
+.compare__corner {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 11rem;
+  background: var(--color-card-bg);
+  font-weight: 500;
+  font-size: var(--tag-size);
+}
+
+.compare__person {
+  position: relative;
+  min-width: 15rem;
+  background: var(--color-card-bg);
+}
+
+.compare__person-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.compare__person-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.compare__photo {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-card-border);
+}
+
+.compare__name {
+  font-weight: 600;
+}
+
+.compare__role {
+  font-size: var(--tag-size);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.compare__remove {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-card-border);
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast), border-color var(--transition-fast);
+}
+
+.compare__remove:hover {
+  opacity: 1;
+  border-color: var(--color-accent);
+}
+
+.compare__cell {
+  font-weight: 300;
+  font-size: 0.9375rem;
+  /* 15px */
+  line-height: 1.35;
+}
+
+.compare__cell--empty {
+  opacity: 0.35;
+}
+
+.compare__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.compare__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.compare__tags .tag {
+  padding: 0.25rem 0.6rem;
+}
+
+.compare__flags {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.compare__certs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.compare__cert {
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-card-border);
+  border-radius: 0.5rem;
+  background: none;
+  cursor: pointer;
+}
+
+.compare__cert img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.compare__cert:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .compare {
+    padding: 0 1rem 3rem;
+  }
+
+  .compare__label,
+  .compare__corner {
+    min-width: 8rem;
+  }
+
+  .compare__person {
+    min-width: 12rem;
+  }
+}
+
 .no-results {
   text-align: center;
   padding: 4rem 1rem;

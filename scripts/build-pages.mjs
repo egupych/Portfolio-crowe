@@ -64,21 +64,27 @@ const employees = getEmployees('en');
 
 // Каталог пересоздаём: иначе страница удалённого сотрудника осталась бы висеть
 rmSync(OUT, { recursive: true, force: true });
+mkdirSync(join(ROOT, 'compare'), { recursive: true });
 for (const employee of employees) {
   const dir = join(OUT, employee.id);
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'index.html'), buildPage(employee), 'utf8');
 }
 
-// Vercel отдаёт этот файл на несуществующие адреса. Внутри то же приложение:
-// человек попадает не на голую ошибку сервера, а на список команды.
-writeFileSync(
-  join(ROOT, '404.html'),
-  template
-    .replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(t('meta.notFound'))} | Crowe Uzbekistan</title>`)
-    .replace('</head>', `  <meta name="robots" content="noindex">${'\n'}</head>`),
-  'utf8',
-);
+/** Служебная страница: то же приложение, но со своим заголовком и без индексации */
+function buildUtilityPage(title) {
+  return template
+    .replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(title)}</title>`)
+    .replace('</head>', '  <meta name="robots" content="noindex">\n</head>');
+}
+
+// Сравнение зависит от закладок в localStorage, индексировать его нечего —
+// нужен только сам адрес, чтобы /compare открывался напрямую и после перезагрузки
+writeFileSync(join(ROOT, 'compare', 'index.html'), buildUtilityPage(t('meta.compareTitle')), 'utf8');
+
+// Vercel отдаёт этот файл на несуществующие адреса: человек попадает
+// не на голую ошибку сервера, а на список команды
+writeFileSync(join(ROOT, '404.html'), buildUtilityPage(`${t('meta.notFound')} | Crowe Uzbekistan`), 'utf8');
 
 const urls = [`${SITE}/`, ...employees.map((e) => `${SITE}/team/${e.id}`)];
 writeFileSync(
@@ -97,4 +103,4 @@ writeFileSync(
   'utf8',
 );
 
-console.log(`Страниц сотрудников: ${employees.length}, адресов в sitemap.xml: ${urls.length}, плюс 404.html`);
+console.log(`Страниц сотрудников: ${employees.length}, адресов в sitemap.xml: ${urls.length}, плюс /compare и 404.html`);

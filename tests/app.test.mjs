@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 import { JSDOM } from 'jsdom';
 
+import { DEFAULT_LANG, setLang } from '../js/i18n.js';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /**
@@ -24,6 +26,10 @@ async function loadApp(url = 'http://localhost/', storage = {}) {
     url,
     pretendToBeVisual: true,
   });
+
+  // i18n кэшируется на весь процесс: без сброса выбранный язык утекает
+  // из одного блока тестов в следующий
+  setLang(DEFAULT_LANG);
 
   const { window } = dom;
   window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
@@ -255,5 +261,104 @@ describe('переключение языка', () => {
     assert.match(activeChip(), /Консультант по МСФО/);
     assert.equal(cards().length, 4, 'фильтр не должен слетать при смене языка');
     assert.ok(names().includes('Валиджон Турсунов'));
+  });
+});
+
+describe('сравнение', () => {
+  const three = { crowe_bookmarks: JSON.stringify(['vera-bell', 'ekaterina-ganova', 'validzhon-tursunov']) };
+  const rowLabels = () => [...$('#compareTable').tBodies[0].rows].map((r) => r.cells[0].textContent);
+  const columns = () => [...$('#compareTable').tHead.rows[0].cells].slice(1);
+
+  test('прямой заход на /compare открывает таблицу', async () => {
+    await loadApp('http://localhost/compare', three);
+    assert.equal($('#compareView').hidden, false);
+    assert.equal($('#homeView').hidden, true);
+    assert.equal(columns().length, 3);
+    assert.match(dom.window.document.title, /Comparison/);
+  });
+
+  test('строки — фиксированные поля плюс секции из данных', async () => {
+    await loadApp('http://localhost/compare', three);
+    const labels = rowLabels();
+    assert.deepEqual(labels.slice(0, 5), ['Role', 'Office', 'Languages', 'Expertise', 'Certificates']);
+    assert.ok(labels.includes('Education'), 'секции сотрудников должны становиться строками');
+    assert.ok(labels.includes('Professional Skills'));
+  });
+
+  test('пустая ячейка помечается прочерком', async () => {
+    await loadApp('http://localhost/compare', three);
+    // Офис есть только у Гановой
+    const office = [...$('#compareTable').tBodies[0].rows].find((r) => r.cells[0].textContent === 'Office');
+    const filled = [...office.cells].slice(1).map((c) => c.textContent.trim());
+    assert.deepEqual(filled, ['—', 'Crowe Russia', '—']);
+  });
+
+  test('«только различия» прячет одинаковые строки', async () => {
+    // Двое с одной должностью, без офиса и с разными языками
+    await loadApp('http://localhost/compare', {
+      crowe_bookmarks: JSON.stringify(['validzhon-tursunov', 'bekzod-abbosov']),
+    });
+    const before = rowLabels();
+    assert.ok(before.includes('Role'));
+
+    $('#compareOnlyDiff').checked = true;
+    $('#compareOnlyDiff').dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+
+    const after = rowLabels();
+    assert.ok(!after.includes('Role'), 'одинаковая должность должна уйти');
+    assert.ok(!after.includes('Office'), 'пустой у обоих офис должен уйти');
+    assert.ok(after.length < before.length);
+  });
+
+  test('крестик убирает колонку и снимает закладку', async () => {
+    await loadApp('http://localhost/compare', three);
+    await click(columns()[0].querySelector('.compare__remove'));
+    assert.equal(columns().length, 2);
+    assert.equal(JSON.parse(dom.window.localStorage.getItem('crowe_bookmarks')).length, 2);
+    assert.equal($('#bookmarkCount').textContent, '2');
+  });
+
+  test('колонка ведёт в профиль без перезагрузки', async () => {
+    await loadApp('http://localhost/compare', three);
+    const link = columns()[0].querySelector('.compare__person-link');
+    assert.match(link.getAttribute('href'), /^\/team\//);
+    await click(link);
+    assert.equal($('#portfolioView').hidden, false);
+    assert.equal(dom.window.location.pathname, '/team/vera-bell');
+  });
+
+  test('кнопка в шапке ведёт на сравнение, «назад» — к команде', async () => {
+    await loadApp('http://localhost/', three);
+    await click($('#compareBtn'));
+    assert.equal($('#compareView').hidden, false);
+    assert.equal(dom.window.location.pathname, '/compare');
+
+    await click($('#backBtn'));
+    assert.equal($('#homeView').hidden, false);
+    assert.equal(dom.window.location.pathname, '/');
+  });
+
+  test('одного сравнивать не с кем — показывается подсказка', async () => {
+    await loadApp('http://localhost/compare', { crowe_bookmarks: '["vera-bell"]' });
+    assert.equal(columns().length, 1);
+    assert.equal($('#compareHint').hidden, false);
+    assert.match($('#compareHint').textContent, /at least one more/);
+  });
+
+  test('без закладок таблица пустая, а не сломанная', async () => {
+    await loadApp('http://localhost/compare');
+    assert.equal($('#compareView').hidden, false);
+    assert.equal($('#compareTable').tHead, null);
+    assert.match($('#compareHint').textContent, /Nothing is bookmarked/);
+  });
+
+  test('смена языка перерисовывает таблицу', async () => {
+    await loadApp('http://localhost/compare', three);
+    assert.ok(rowLabels().includes('Education'));
+
+    await click($('#langSwitch [data-lang="ru"]'));
+    assert.ok(rowLabels().includes('Образование'), 'заголовки секций должны переехать на русский');
+    assert.equal($('.compare__title').textContent, 'Сравнение');
+    assert.match(dom.window.document.title, /Сравнение/);
   });
 });

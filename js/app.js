@@ -13,6 +13,7 @@ const themeToggleText = document.getElementById('themeToggleText');
 const compareBtn = document.getElementById('compareBtn');
 const bookmarkCount = document.getElementById('bookmarkCount');
 const langSwitch = document.getElementById('langSwitch');
+const compareView = document.getElementById('compareView');
 
 /** Сотрудники на текущем языке — пересобирается при переключении языка */
 let people = getEmployees(getLang());
@@ -99,30 +100,12 @@ function toggleBookmark(employeeId) {
   
   // Re-render filters to update bookmark count
   applyFilters();
+  if (!compareView.hidden) renderComparison();
 }
 
 updateCompareButton();
 
-// Compare button functionality
-compareBtn?.addEventListener('click', () => {
-  const bookmarkedEmployeesList = people.filter((emp) => bookmarkedEmployees.has(emp.id));
-  if (bookmarkedEmployeesList.length > 0) {
-    showComparison();
-  }
-});
-
-function showComparison() {
-  // Switch to home view and filter by bookmarks
-  activeTag = 'bookmarks';
-  searchQuery = '';
-  if (searchInput) searchInput.value = '';
-  if (searchClearBtn) searchClearBtn.hidden = true;
-  applyFilters();
-
-  // Если открыт профиль — возвращаемся к сетке, иначе отфильтрованный список не виден
-  if (!portfolioView.hidden) switchView(false);
-  window.scrollTo({ top: 0, behavior: scrollBehavior() });
-}
+compareBtn?.addEventListener('click', () => openComparison());
 
 // Language management
 function setMetaContent(attr, name, value) {
@@ -180,6 +163,7 @@ function applyLanguage(lang) {
 
   // Перерисовываем всё, что построено из данных
   applyFilters();
+  if (!compareView.hidden) renderComparison();
   if (!portfolioView.hidden && currentEmployeeId) {
     const employee = people.find((e) => e.id === currentEmployeeId);
     if (employee) renderPortfolio(employee);
@@ -545,6 +529,220 @@ function renderOtherEmployees(currentId) {
     .forEach((emp, i) => otherEmployeesGrid.appendChild(createEmployeeCard(emp, i)));
 }
 
+// ----- Comparison -----
+const COMPARE_PATH = '/compare';
+const compareTable = document.getElementById('compareTable');
+const compareHint = document.getElementById('compareHint');
+const compareOnlyDiff = document.getElementById('compareOnlyDiff');
+
+const isComparePath = () => location.pathname.replace(/\/+$/, '') === COMPARE_PATH;
+
+/** Отмеченные сотрудники в порядке общего списка, а не в порядке отметки */
+const comparedEmployees = () => people.filter((emp) => bookmarkedEmployees.has(emp.id));
+
+/**
+ * Строки таблицы: фиксированные поля плюс объединение заголовков секций,
+ * отсортированных по частоте. Список строк не приходится вести отдельно —
+ * он следует за данными: появится новая секция, появится и строка.
+ */
+function comparisonRows(list) {
+  const sectionsOf = (emp) => [...emp.left, ...emp.right];
+
+  const rows = [
+    { label: t('compare.role'), kind: 'text', values: list.map((e) => [e.role]) },
+    { label: t('compare.office'), kind: 'text', values: list.map((e) => (e.office ? [e.office] : [])) },
+    { label: t('compare.languages'), kind: 'flags', values: list.map((e) => e.languages) },
+    { label: t('compare.tags'), kind: 'tags', values: list.map((e) => e.tags) },
+    { label: t('compare.certificates'), kind: 'certs', values: list.map((e) => getCertificates(e.id)) },
+  ];
+
+  const frequency = new Map();
+  for (const emp of list) {
+    for (const section of sectionsOf(emp)) {
+      frequency.set(section.title, (frequency.get(section.title) || 0) + 1);
+    }
+  }
+
+  for (const [title] of [...frequency.entries()].sort((a, b) => b[1] - a[1])) {
+    rows.push({
+      label: title,
+      kind: 'list',
+      values: list.map((emp) => {
+        const section = sectionsOf(emp).find((s) => s.title === title);
+        if (!section) return [];
+        // Опыт хранится объектами, остальные типы секций — строками
+        return section.type === 'experience'
+          ? section.items.map((item) => `${item.role} — ${item.company}, ${item.period}`)
+          : section.items;
+      }),
+    });
+  }
+
+  return rows;
+}
+
+/** Ячейка строки: у каждого вида содержимого своя вёрстка */
+function renderCompareCell(row, index) {
+  const cell = document.createElement('td');
+  cell.className = 'compare__cell';
+  const value = row.values[index];
+
+  if (!value.length) {
+    cell.classList.add('compare__cell--empty');
+    cell.textContent = '—';
+    return cell;
+  }
+
+  if (row.kind === 'flags') {
+    const wrap = document.createElement('div');
+    wrap.className = 'compare__flags';
+    for (const code of value) {
+      const img = document.createElement('img');
+      img.className = 'portfolio__flag';
+      img.src = getFlag(code);
+      img.alt = '';
+      wrap.appendChild(img);
+    }
+    cell.appendChild(wrap);
+    return cell;
+  }
+
+  if (row.kind === 'tags') {
+    const wrap = document.createElement('div');
+    wrap.className = 'compare__tags';
+    for (const text of value) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = text;
+      wrap.appendChild(tag);
+    }
+    cell.appendChild(wrap);
+    return cell;
+  }
+
+  if (row.kind === 'certs') {
+    const wrap = document.createElement('div');
+    wrap.className = 'compare__certs';
+    value.forEach((cert, i) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'compare__cert';
+      button.setAttribute('aria-label', t('certs.alt', { n: i + 1 }));
+      const img = document.createElement('img');
+      img.src = cert.thumb;
+      img.alt = '';
+      img.loading = 'lazy';
+      button.appendChild(img);
+      button.addEventListener('click', () => openLightbox(value, i, button));
+      wrap.appendChild(button);
+    });
+    cell.appendChild(wrap);
+    return cell;
+  }
+
+  if (row.kind === 'text' && value.length === 1) {
+    cell.textContent = value[0];
+    return cell;
+  }
+
+  const list = document.createElement('ul');
+  list.className = 'compare__list';
+  for (const text of value) {
+    const item = document.createElement('li');
+    item.textContent = text;
+    list.appendChild(item);
+  }
+  cell.appendChild(list);
+  return cell;
+}
+
+/** Шапка колонки: фото, имя со ссылкой на профиль и кнопка «убрать» */
+function renderCompareHead(employee) {
+  const th = document.createElement('th');
+  th.scope = 'col';
+  th.className = 'compare__person';
+
+  const link = document.createElement('a');
+  link.className = 'compare__person-link';
+  link.href = profileUrl(employee.id);
+  link.innerHTML = `
+    <img class="compare__photo" src="${employee.photo}" alt="" loading="lazy">
+    <span class="compare__name">${employee.name}</span>
+    <span class="compare__role">${employee.role}</span>
+  `;
+  withPhotoFallback(link.querySelector('.compare__photo'));
+  link.addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    openPortfolio(employee.id);
+  });
+
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'compare__remove';
+  remove.setAttribute('aria-label', t('compare.remove', { name: employee.name }));
+  remove.textContent = '×';
+  remove.addEventListener('click', () => toggleBookmark(employee.id));
+
+  th.append(link, remove);
+  return th;
+}
+
+function renderComparison() {
+  const list = comparedEmployees();
+  compareTable.innerHTML = '';
+
+  if (!list.length) {
+    compareHint.hidden = false;
+    compareHint.textContent = t('compare.nothing');
+    return;
+  }
+
+  const rows = comparisonRows(list);
+  // «Только различия» прячет строки, одинаковые у всех: ради них таблицу не открывают
+  const onlyDiff = Boolean(compareOnlyDiff?.checked) && list.length > 1;
+  const same = (row) => new Set(row.values.map((v) => JSON.stringify(v))).size === 1;
+  const visible = onlyDiff ? rows.filter((row) => !same(row)) : rows;
+
+  const head = compareTable.createTHead().insertRow();
+  head.appendChild(document.createElement('td')).className = 'compare__corner';
+  for (const employee of list) head.appendChild(renderCompareHead(employee));
+
+  const body = compareTable.createTBody();
+  for (const row of visible) {
+    const tr = body.insertRow();
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.className = 'compare__label';
+    label.textContent = row.label;
+    tr.appendChild(label);
+    list.forEach((employee, i) => tr.appendChild(renderCompareCell(row, i)));
+  }
+
+  if (list.length === 1) {
+    compareHint.hidden = false;
+    compareHint.textContent = t('compare.hintOne');
+  } else if (onlyDiff && !visible.length) {
+    compareHint.hidden = false;
+    compareHint.textContent = t('compare.hintSame');
+  } else {
+    compareHint.hidden = true;
+  }
+}
+
+/** immediate — заход по прямому адресу: страница и так грузится, переход не нужен */
+function openComparison({ push = true, immediate = false } = {}) {
+  renderComparison();
+  currentEmployeeId = null;
+  document.title = t('meta.compareTitle');
+  if (push) history.pushState(null, '', COMPARE_PATH);
+  if (immediate) revealImmediately(compareView);
+  else showView(compareView);
+  window.scrollTo({ top: 0, behavior: scrollBehavior() });
+}
+
+compareOnlyDiff?.addEventListener('change', renderComparison);
+
 // ----- Search & Filter -----
 const searchInput = document.getElementById('searchInput');
 const searchClearBtn = document.getElementById('searchClearBtn');
@@ -725,35 +923,30 @@ function renderCards(list = people) {
   list.forEach((emp, i) => cardsGrid.appendChild(createEmployeeCard(emp, i)));
 }
 
-function switchView(toPortfolio) {
-  if (toPortfolio) {
-    backBtn.style.display = 'inline-flex';
-    homeView.classList.add('view--leaving');
-    homeView.classList.remove('view--active');
-    setTimeout(() => {
-      homeView.hidden = true;
-      portfolioView.hidden = false;
-      requestAnimationFrame(() => {
-        portfolioView.classList.add('view--active');
-      });
-    }, viewTransitionMs());
-  } else {
-    backBtn.style.display = 'none';
-    portfolioView.classList.remove('view--active');
-    portfolioView.classList.add('view--leaving');
-    setTimeout(() => {
-      portfolioView.hidden = true;
-      portfolioView.classList.remove('view--leaving');
-      homeView.hidden = false;
-      homeView.classList.remove('view--leaving');
-      requestAnimationFrame(() => {
-        homeView.classList.add('view--active');
-      });
-    }, viewTransitionMs());
-    currentEmployeeId = null;
-    updateDocumentTitle();
-    history.pushState(null, '', '/');
-  }
+/** Показывает один из видов, гася предыдущий. Адрес и заголовок — на вызывающем */
+function showView(target) {
+  const views = [homeView, compareView, portfolioView];
+  const current = views.find((v) => !v.hidden);
+  backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
+  if (current === target) return;
+
+  current.classList.remove('view--active');
+  current.classList.add('view--leaving');
+  setTimeout(() => {
+    current.hidden = true;
+    current.classList.remove('view--leaving');
+    target.hidden = false;
+    target.classList.remove('view--leaving');
+    requestAnimationFrame(() => target.classList.add('view--active'));
+  }, viewTransitionMs());
+}
+
+/** Возврат к списку команды. push=false — когда сюда привёл сам браузер */
+function goHome({ push = true } = {}) {
+  currentEmployeeId = null;
+  updateDocumentTitle();
+  if (push) history.pushState(null, '', '/');
+  showView(homeView);
 }
 
 let currentEmployeeId = null;
@@ -772,6 +965,10 @@ function employeeIdFromUrl() {
 
 /** Заголовок вкладки: на странице сотрудника — его имя и должность */
 function updateDocumentTitle() {
+  if (!compareView.hidden) {
+    document.title = t('meta.compareTitle');
+    return;
+  }
   const employee = currentEmployeeId && people.find((e) => e.id === currentEmployeeId);
   document.title = employee
     ? t('meta.personTitle', { name: employee.name, role: employee.role })
@@ -788,7 +985,7 @@ function openPortfolio(id) {
   // Именно applyFilters, а не renderCards: иначе после возврата из профиля
   // чип остаётся активным, а в сетке снова все
   applyFilters();
-  switchView(true);
+  showView(portfolioView);
   history.pushState({ id }, '', profileUrl(id));
   window.scrollTo({ top: 0, behavior: scrollBehavior() });
 }
@@ -847,9 +1044,9 @@ function navigateLightbox(dir) {
   updateLightbox();
 }
 
-backBtn.addEventListener('click', () => switchView(false));
+backBtn.addEventListener('click', () => goHome());
 logoBtn.addEventListener('click', () => {
-  if (!portfolioView.hidden) switchView(false);
+  if (homeView.hidden) goHome();
 });
 
 lightboxClose.addEventListener('click', closeLightbox);
@@ -937,7 +1134,7 @@ document.addEventListener('keydown', (e) => {
   // 2. Portfolio view active
   if (!portfolioView.hidden) {
     if (e.key === 'Escape') {
-      switchView(false);
+      goHome();
       return;
     }
 
@@ -958,13 +1155,24 @@ window.addEventListener('popstate', () => {
   if (employee) {
     currentEmployeeId = employee.id;
     renderPortfolio(employee);
-    if (portfolioView.hidden) switchView(true);
+    updateDocumentTitle();
+    showView(portfolioView);
     return;
   }
-  if (!portfolioView.hidden) switchView(false);
+  if (isComparePath()) {
+    openComparison({ push: false });
+    return;
+  }
+  // push: false — запись в истории уже сменил сам браузер
+  goHome({ push: false });
 });
 
 function initFromUrl() {
+  if (isComparePath()) {
+    openComparison({ push: false, immediate: true });
+    return;
+  }
+
   const id = employeeIdFromUrl();
   const employee = id ? people.find((e) => e.id === id) : null;
   if (!employee) {
@@ -977,11 +1185,17 @@ function initFromUrl() {
 
   currentEmployeeId = employee.id;
   renderPortfolio(employee);
-  homeView.hidden = true;
-  homeView.classList.remove('view--active');
-  portfolioView.hidden = false;
-  portfolioView.classList.add('view--active');
-  backBtn.style.display = 'inline-flex';
+  revealImmediately(portfolioView);
+}
+
+/** Первый показ при заходе по прямому адресу — без перехода, страница и так грузится */
+function revealImmediately(target) {
+  for (const view of [homeView, compareView, portfolioView]) {
+    view.hidden = view !== target;
+    view.classList.toggle('view--active', view === target);
+    view.classList.remove('view--leaving');
+  }
+  backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
 }
 
 // ----- Scroll To Top Button -----
