@@ -583,15 +583,22 @@ function comparisonRows(list) {
 
 /** Ячейка строки: у каждого вида содержимого своя вёрстка */
 function renderCompareCell(row, index) {
-  const cell = document.createElement('td');
-  cell.className = 'compare__cell';
+  const td = document.createElement('td');
+  td.className = 'compare__cell';
   const value = row.values[index];
 
   if (!value.length) {
-    cell.classList.add('compare__cell--empty');
-    cell.textContent = '—';
-    return cell;
+    td.classList.add('compare__cell--empty');
+    td.textContent = '—';
+    return td;
   }
+
+  // Содержимое живёт во вложенном блоке: на td ограничение высоты
+  // и прокрутка не работают, а без них один длинный профиль
+  // растягивает строку на пол-экрана
+  const cell = document.createElement('div');
+  cell.className = 'compare__cell-inner';
+  td.appendChild(cell);
 
   if (row.kind === 'flags') {
     const wrap = document.createElement('div');
@@ -604,7 +611,7 @@ function renderCompareCell(row, index) {
       wrap.appendChild(img);
     }
     cell.appendChild(wrap);
-    return cell;
+    return td;
   }
 
   if (row.kind === 'tags') {
@@ -617,7 +624,7 @@ function renderCompareCell(row, index) {
       wrap.appendChild(tag);
     }
     cell.appendChild(wrap);
-    return cell;
+    return td;
   }
 
   if (row.kind === 'certs') {
@@ -637,12 +644,12 @@ function renderCompareCell(row, index) {
       wrap.appendChild(button);
     });
     cell.appendChild(wrap);
-    return cell;
+    return td;
   }
 
   if (row.kind === 'text' && value.length === 1) {
     cell.textContent = value[0];
-    return cell;
+    return td;
   }
 
   const list = document.createElement('ul');
@@ -653,7 +660,7 @@ function renderCompareCell(row, index) {
     list.appendChild(item);
   }
   cell.appendChild(list);
-  return cell;
+  return td;
 }
 
 /** Шапка колонки: фото, имя со ссылкой на профиль и кнопка «убрать» */
@@ -703,6 +710,9 @@ function renderComparison() {
   const onlyDiff = Boolean(compareOnlyDiff?.checked) && list.length > 1;
   const same = (row) => new Set(row.values.map((v) => JSON.stringify(v))).size === 1;
   const visible = onlyDiff ? rows.filter((row) => !same(row)) : rows;
+
+  // Минимальная ширина таблицы зависит от числа колонок — считает CSS
+  compareTable.style.setProperty('--compare-columns', list.length);
 
   const head = compareTable.createTHead().insertRow();
   head.appendChild(document.createElement('td')).className = 'compare__corner';

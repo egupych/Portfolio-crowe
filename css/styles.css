@@ -750,7 +750,7 @@ body {
 
 /* ===== Сравнение ===== */
 .compare {
-  max-width: 80rem;
+  max-width: 100rem;
   margin: 0 auto;
   padding: 0 3rem 4rem;
 }
@@ -792,9 +792,15 @@ body {
   border-radius: var(--radius-card);
 }
 
+/* table-layout: fixed работает только при заданной ширине: с max-content браузер
+   откатывается на автораскладку и раздаёт остаток неравномерно. Поэтому ширина
+   100%, а минимум считается от числа колонок — тогда при многих людях таблица
+   выезжает в прокрутку, а колонки остаются одинаковыми. */
 .compare__table {
+  table-layout: fixed;
   border-collapse: collapse;
   width: 100%;
+  min-width: calc(11rem + var(--compare-columns, 3) * 18rem);
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-card);
@@ -825,16 +831,29 @@ body {
   position: sticky;
   left: 0;
   z-index: 1;
-  min-width: 11rem;
+  width: 11rem;
   background: var(--color-card-bg);
   font-weight: 500;
   font-size: var(--tag-size);
 }
 
+/* Ширину не задаём: при table-layout: fixed остаток делится между колонками
+   поровну, а нижнюю границу держит min-width таблицы */
 .compare__person {
   position: relative;
-  min-width: 15rem;
   background: var(--color-card-bg);
+}
+
+.compare__table thead th,
+.compare__table thead td {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-card-bg);
+}
+
+.compare__corner {
+  z-index: 3;
 }
 
 .compare__person-link {
@@ -898,6 +917,12 @@ body {
   line-height: 1.35;
 }
 
+.compare__cell-inner {
+  max-height: 15rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .compare__cell--empty {
   opacity: 0.35;
 }
@@ -916,8 +941,12 @@ body {
   gap: 0.35rem;
 }
 
+/* Базовый .tag не переносится: в узкой колонке длинная компетенция
+   вылезала за ячейку и добавляла горизонтальную прокрутку */
 .compare__tags .tag {
   padding: 0.25rem 0.6rem;
+  white-space: normal;
+  text-align: left;
 }
 
 .compare__flags {
@@ -932,8 +961,8 @@ body {
 }
 
 .compare__cert {
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 4.5rem;
+  height: 6rem;
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--color-card-border);
@@ -946,6 +975,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top;
   display: block;
 }
 
