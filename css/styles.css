@@ -749,10 +749,10 @@ body {
 }
 
 /* ===== Сравнение ===== */
+/* Ширину и боковые отступы задаёт #app: свои добавлять нельзя, иначе таблица
+   встаёт уже логотипа и кнопок в шапке */
 .compare {
-  max-width: 100rem;
-  margin: 0 auto;
-  padding: 0 3rem 4rem;
+  padding-bottom: 4rem;
 }
 
 .compare__bar {
@@ -985,10 +985,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  .compare {
-    padding: 0 1rem 3rem;
-  }
-
   .compare__label,
   .compare__corner {
     min-width: 8rem;
