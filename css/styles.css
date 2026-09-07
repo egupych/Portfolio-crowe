@@ -149,14 +149,12 @@ body {
   border: 1px solid var(--color-tag-border);
   border-radius: var(--radius-tag);
   white-space: nowrap;
-  transition: border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .tag:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-0.0625rem);
-  /* -1px */
 }
 
 .role {
@@ -293,7 +291,7 @@ body {
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .portfolio__download-btn:hover,
@@ -301,7 +299,6 @@ body {
 .portfolio__bookmark-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
-  transform: translateY(-2px);
 }
 
 .portfolio__bookmark-btn--active {
@@ -341,7 +338,6 @@ body {
   opacity: 1;
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-2px);
 }
 
 .logo-btn {
@@ -427,12 +423,11 @@ body {
   font-size: var(--tag-size);
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .theme-toggle-btn:hover {
   border-color: var(--color-accent);
-  transform: translateY(-0.0625rem);
 }
 
 .compare-btn {
@@ -448,13 +443,12 @@ body {
   font-size: var(--tag-size);
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .compare-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
-  transform: translateY(-0.0625rem);
 }
 
 .theme-toggle-btn__dot {
@@ -632,7 +626,7 @@ body {
   cursor: pointer;
   opacity: 0.85;
   user-select: none;
-  transition: opacity var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: opacity var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 
 /* Подпись держит высоту чипа — вертикальных отступов у пилюли нет */
@@ -666,7 +660,6 @@ body {
   opacity: 1;
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-1px);
 }
 
 .filter-chip--active {
@@ -687,7 +680,6 @@ body {
   --chip-fg: var(--color-text) !important;
   opacity: 0.45 !important;
   cursor: not-allowed !important;
-  transform: none !important;
   pointer-events: none;
 }
 
@@ -849,7 +841,7 @@ body {
   background: var(--color-card-bg);
 }
 
-.compare__corner {
+.compare__table thead .compare__corner {
   z-index: 3;
 }
 
@@ -1436,7 +1428,7 @@ body {
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .cert-item__pdf-btn svg {
@@ -1447,7 +1439,6 @@ body {
 .cert-item__pdf-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
-  transform: translateY(-2px);
 }
 
 .cert-card:focus-visible {
