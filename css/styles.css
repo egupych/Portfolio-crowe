@@ -755,19 +755,14 @@ body {
   padding-bottom: 4rem;
 }
 
+/* В панели остался только переключатель — прижимаем его вправо */
 .compare__bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
   margin-bottom: 1.5rem;
-}
-
-.compare__title {
-  font-weight: 600;
-  font-size: 1.375rem;
-  /* 22px */
 }
 
 .compare__toggle {
@@ -800,7 +795,7 @@ body {
   table-layout: fixed;
   border-collapse: collapse;
   width: 100%;
-  min-width: calc(11rem + var(--compare-columns, 3) * 18rem);
+  min-width: calc(12rem + var(--compare-columns, 3) * 18rem);
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-card);
@@ -831,10 +826,12 @@ body {
   position: sticky;
   left: 0;
   z-index: 1;
-  width: 11rem;
+  width: 12rem;
   background: var(--color-card-bg);
-  font-weight: 500;
-  font-size: var(--tag-size);
+  font-weight: 600;
+  font-size: 1rem;
+  /* 16px — крупнее содержимого ячеек: это заголовок строки */
+  line-height: 1.25;
 }
 
 /* Ширину не задаём: при table-layout: fixed остаток делится между колонками
@@ -981,7 +978,8 @@ body {
 @media (max-width: 640px) {
   .compare__label,
   .compare__corner {
-    min-width: 8rem;
+    width: 9rem;
+    font-size: 0.9375rem;
   }
 
   .compare__person {

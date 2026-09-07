@@ -358,7 +358,7 @@ describe('сравнение', () => {
 
     await click($('#langSwitch [data-lang="ru"]'));
     assert.ok(rowLabels().includes('Образование'), 'заголовки секций должны переехать на русский');
-    assert.equal($('.compare__title').textContent, 'Сравнение');
+    assert.equal($('#compareView h1').textContent, 'Сравнение', 'заголовок вида остаётся в документе, просто не виден');
     assert.match(dom.window.document.title, /Сравнение/);
   });
 });
