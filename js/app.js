@@ -583,22 +583,15 @@ function comparisonRows(list) {
 
 /** Ячейка строки: у каждого вида содержимого своя вёрстка */
 function renderCompareCell(row, index) {
-  const td = document.createElement('td');
-  td.className = 'compare__cell';
+  const cell = document.createElement('td');
+  cell.className = 'compare__cell';
   const value = row.values[index];
 
   if (!value.length) {
-    td.classList.add('compare__cell--empty');
-    td.textContent = '—';
-    return td;
+    cell.classList.add('compare__cell--empty');
+    cell.textContent = '—';
+    return cell;
   }
-
-  // Содержимое живёт во вложенном блоке: на td ограничение высоты
-  // и прокрутка не работают, а без них один длинный профиль
-  // растягивает строку на пол-экрана
-  const cell = document.createElement('div');
-  cell.className = 'compare__cell-inner';
-  td.appendChild(cell);
 
   if (row.kind === 'flags') {
     const wrap = document.createElement('div');
@@ -611,7 +604,7 @@ function renderCompareCell(row, index) {
       wrap.appendChild(img);
     }
     cell.appendChild(wrap);
-    return td;
+    return cell;
   }
 
   if (row.kind === 'tags') {
@@ -624,7 +617,7 @@ function renderCompareCell(row, index) {
       wrap.appendChild(tag);
     }
     cell.appendChild(wrap);
-    return td;
+    return cell;
   }
 
   if (row.kind === 'certs') {
@@ -644,12 +637,12 @@ function renderCompareCell(row, index) {
       wrap.appendChild(button);
     });
     cell.appendChild(wrap);
-    return td;
+    return cell;
   }
 
   if (row.kind === 'text' && value.length === 1) {
     cell.textContent = value[0];
-    return td;
+    return cell;
   }
 
   const list = document.createElement('ul');
@@ -660,7 +653,7 @@ function renderCompareCell(row, index) {
     list.appendChild(item);
   }
   cell.appendChild(list);
-  return td;
+  return cell;
 }
 
 /** Шапка колонки: фото, имя со ссылкой на профиль и кнопка «убрать» */

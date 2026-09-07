@@ -917,12 +917,6 @@ body {
   line-height: 1.35;
 }
 
-.compare__cell-inner {
-  max-height: 15rem;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
 .compare__cell--empty {
   opacity: 0.35;
 }
