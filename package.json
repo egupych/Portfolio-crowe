@@ -1,0 +1,19 @@
+{
+  "name": "portfolio-crowe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Статический сайт-портфолио команды Crowe Uzbekistan",
+  "scripts": {
+    "dev": "python -m http.server 4173",
+    "test": "node --test",
+    "lint": "eslint .",
+    "check": "npm run lint && npm test && node scripts/check-assets.mjs",
+    "build": "node scripts/build-pages.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "jsdom": "^26.0.0"
+  }
+}

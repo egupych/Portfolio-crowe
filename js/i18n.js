@@ -8,11 +8,15 @@ export const DEFAULT_LANG = 'en';
 
 const LANG_KEY = 'crowe_lang';
 
-const STRINGS = {
+/** Словари экспортируются ради теста на паритет ключей между языками */
+export const STRINGS = {
   en: {
     'html.lang': 'en',
     'meta.title': 'Crowe Uzbekistan — Team Portfolio',
     'meta.description': 'Portfolio and CVs of the Crowe Uzbekistan team.',
+    'meta.notFound': 'Page not found',
+    'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
+    'meta.personDescription': '{name}, {role} at Crowe Uzbekistan. CV, expertise and certificates.',
 
     'header.logoAria': 'Crowe Uzbekistan',
     'header.langAria': 'Switch language',
@@ -27,7 +31,9 @@ const STRINGS = {
     'theme.crowe-light': 'Crowe Light',
     'theme.warm': 'Warm',
 
-    'search.placeholder': 'Search by name, role or expertise…',
+    'home.heading': 'Crowe Uzbekistan — Team Portfolio',
+
+    'search.placeholder': 'Search by name, role or CV content…',
     'search.aria': 'Search specialists',
     'search.clear': 'Clear search',
 
@@ -46,6 +52,20 @@ const STRINGS = {
     'portfolio.bookmarkAdd': 'Add to bookmarks',
     'portfolio.bookmarkAdded': 'Bookmarked',
 
+    'compare.title': 'Comparison',
+    'compare.onlyDiff': 'Differences only',
+    'compare.role': 'Role',
+    'compare.office': 'Office',
+    'compare.languages': 'Languages',
+    'compare.tags': 'Expertise',
+    'compare.certificates': 'Certificates',
+    'compare.remove': 'Remove {name} from comparison',
+    'compare.open': 'Open profile',
+    'compare.hintOne': 'Bookmark at least one more specialist — there is nothing to compare with a single one.',
+    'compare.hintSame': 'The compared specialists differ in every row shown.',
+    'compare.nothing': 'Nothing is bookmarked yet.',
+    'meta.compareTitle': 'Comparison | Crowe Uzbekistan',
+
     'certs.title': 'Certificates',
     'certs.zoom': 'Zoom in',
     'certs.download': 'Download as PDF',
@@ -53,6 +73,7 @@ const STRINGS = {
     'certs.alt': 'Certificate {n}',
     'certs.altGeneric': 'Certificate',
 
+    'lightbox.title': 'Certificate viewer',
     'lightbox.close': 'Close',
     'lightbox.prev': 'Previous',
     'lightbox.next': 'Next',
@@ -64,6 +85,9 @@ const STRINGS = {
     'html.lang': 'ru',
     'meta.title': 'Crowe Uzbekistan — Портфолио команды',
     'meta.description': 'Портфолио и резюме команды Crowe Uzbekistan.',
+    'meta.notFound': 'Страница не найдена',
+    'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
+    'meta.personDescription': '{name}, {role} в Crowe Uzbekistan. Резюме, компетенции и сертификаты.',
 
     'header.logoAria': 'Crowe Uzbekistan',
     'header.langAria': 'Переключить язык',
@@ -78,7 +102,9 @@ const STRINGS = {
     'theme.crowe-light': 'Crowe Light',
     'theme.warm': 'Тёплая',
 
-    'search.placeholder': 'Поиск по имени, роли или компетенциям…',
+    'home.heading': 'Crowe Uzbekistan — портфолио команды',
+
+    'search.placeholder': 'Поиск по имени, роли и резюме…',
     'search.aria': 'Поиск специалистов',
     'search.clear': 'Очистить поиск',
 
@@ -97,6 +123,20 @@ const STRINGS = {
     'portfolio.bookmarkAdd': 'Добавить в закладки',
     'portfolio.bookmarkAdded': 'В закладках',
 
+    'compare.title': 'Сравнение',
+    'compare.onlyDiff': 'Только различия',
+    'compare.role': 'Должность',
+    'compare.office': 'Офис',
+    'compare.languages': 'Языки',
+    'compare.tags': 'Компетенции',
+    'compare.certificates': 'Сертификаты',
+    'compare.remove': 'Убрать {name} из сравнения',
+    'compare.open': 'Открыть профиль',
+    'compare.hintOne': 'Отметьте ещё хотя бы одного специалиста — одного сравнивать не с кем.',
+    'compare.hintSame': 'Показанные специалисты различаются по всем строкам.',
+    'compare.nothing': 'В закладках пока никого нет.',
+    'meta.compareTitle': 'Сравнение | Crowe Uzbekistan',
+
     'certs.title': 'Сертификаты',
     'certs.zoom': 'Увеличить',
     'certs.download': 'Скачать в PDF',
@@ -104,6 +144,7 @@ const STRINGS = {
     'certs.alt': 'Сертификат {n}',
     'certs.altGeneric': 'Сертификат',
 
+    'lightbox.title': 'Просмотр сертификата',
     'lightbox.close': 'Закрыть',
     'lightbox.prev': 'Предыдущий',
     'lightbox.next': 'Следующий',

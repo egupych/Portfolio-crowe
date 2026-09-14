@@ -1,7 +1,5 @@
-// ?v= обязателен: index.html версионирует только app.js, а импорты
-// без версии браузер продолжает брать из кэша. Поднимать вместе.
-import { getEmployees, getCertificates, getFlag } from './data.js?v=28';
-import { LANGS, getLang, setLang, t } from './i18n.js?v=28';
+import { getEmployees, getCertificates, getFlag, normalizeSearch } from './data.js';
+import { LANGS, getLang, setLang, t } from './i18n.js';
 
 const homeView = document.getElementById('homeView');
 const portfolioView = document.getElementById('portfolioView');
@@ -9,18 +7,18 @@ const cardsGrid = document.getElementById('cardsGrid');
 const portfolioContent = document.getElementById('portfolioContent');
 const otherEmployeesGrid = document.getElementById('otherEmployeesGrid');
 const backBtn = document.getElementById('backBtn');
-const headerBackBtn = document.getElementById('headerBackBtn');
 const logoBtn = document.getElementById('logoBtn');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeToggleText = document.getElementById('themeToggleText');
 const compareBtn = document.getElementById('compareBtn');
 const bookmarkCount = document.getElementById('bookmarkCount');
 const langSwitch = document.getElementById('langSwitch');
+const compareView = document.getElementById('compareView');
 
 /** Сотрудники на текущем языке — пересобирается при переключении языка */
 let people = getEmployees(getLang());
 
-const PHOTO_PLACEHOLDER = 'Фото профилей/placeholder.svg';
+const PHOTO_PLACEHOLDER = '/photos/placeholder.svg';
 
 /** Подставляет заглушку, если фото сотрудника не загрузилось */
 function withPhotoFallback(img) {
@@ -36,19 +34,42 @@ function withPhotoFallback(img) {
   if (img.complete && img.naturalWidth === 0) applyFallback();
 }
 
-// Bookmark management
-let bookmarkedEmployees = new Set();
-const BOOKMARKS_KEY = 'crowe_bookmarks';
-
-function initBookmarks() {
-  const savedBookmarks = localStorage.getItem(BOOKMARKS_KEY);
-  if (savedBookmarks) {
-    bookmarkedEmployees = new Set(JSON.parse(savedBookmarks));
+/** Множество id из localStorage; если хранилище недоступно или битое — пустое */
+function readIdSet(key) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(key));
+    return new Set(Array.isArray(saved) ? saved : []);
+  } catch {
+    return new Set();
   }
 }
 
+function writeIdSet(key, ids) {
+  try {
+    localStorage.setItem(key, JSON.stringify([...ids]));
+  } catch {
+    /* приватный режим — просто не сохраняем */
+  }
+}
+
+/**
+ * Системная настройка «меньше движения». Читаем через matchMedia, а не один раз:
+ * пользователь может переключить её, не перезагружая страницу.
+ */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/** Плавная прокрутка только если движение не отключено */
+const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
+
+/** Пауза между сменой видов — при отключённом движении ждать нечего */
+const viewTransitionMs = () => (reducedMotion.matches ? 0 : 300);
+
+// Bookmark management
+const BOOKMARKS_KEY = 'crowe_bookmarks';
+const bookmarkedEmployees = readIdSet(BOOKMARKS_KEY);
+
 function saveBookmarks() {
-  localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...bookmarkedEmployees]));
+  writeIdSet(BOOKMARKS_KEY, bookmarkedEmployees);
   updateCompareButton();
 }
 
@@ -79,31 +100,12 @@ function toggleBookmark(employeeId) {
   
   // Re-render filters to update bookmark count
   applyFilters();
+  if (!compareView.hidden) renderComparison();
 }
 
-initBookmarks();
 updateCompareButton();
 
-// Compare button functionality
-compareBtn?.addEventListener('click', () => {
-  const bookmarkedEmployeesList = people.filter((emp) => bookmarkedEmployees.has(emp.id));
-  if (bookmarkedEmployeesList.length > 0) {
-    showComparison();
-  }
-});
-
-function showComparison() {
-  // Switch to home view and filter by bookmarks
-  activeTag = 'bookmarks';
-  searchQuery = '';
-  if (searchInput) searchInput.value = '';
-  if (searchClearBtn) searchClearBtn.hidden = true;
-  applyFilters();
-
-  // Если открыт профиль — возвращаемся к сетке, иначе отфильтрованный список не виден
-  if (!portfolioView.hidden) switchView(false);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+compareBtn?.addEventListener('click', () => openComparison());
 
 // Language management
 function setMetaContent(attr, name, value) {
@@ -114,7 +116,7 @@ function setMetaContent(attr, name, value) {
 /** Проставляет переводы во всю статическую разметку (data-i18n*) и в мета-теги */
 function applyStaticTranslations() {
   document.documentElement.lang = t('html.lang');
-  document.title = t('meta.title');
+  updateDocumentTitle();
 
   setMetaContent('name', 'description', t('meta.description'));
   setMetaContent('property', 'og:title', t('meta.title'));
@@ -161,6 +163,7 @@ function applyLanguage(lang) {
 
   // Перерисовываем всё, что построено из данных
   applyFilters();
+  if (!compareView.hidden) renderComparison();
   if (!portfolioView.hidden && currentEmployeeId) {
     const employee = people.find((e) => e.id === currentEmployeeId);
     if (employee) renderPortfolio(employee);
@@ -212,8 +215,11 @@ const lightboxNext = document.getElementById('lightboxNext');
 const lightboxCounter = document.getElementById('lightboxCounter');
 
 let currentCerts = [];
+let lightboxTrigger = null;
 let currentCertIndex = 0;
-let viewedEmployees = new Set();
+/** Отметки «уже смотрел» переживают перезагрузку, как и закладки */
+const VIEWED_KEY = 'crowe_viewed';
+const viewedEmployees = readIdSet(VIEWED_KEY);
 
 function renderSection(section, delayIndex) {
   const el = document.createElement('div');
@@ -256,8 +262,8 @@ function renderSection(section, delayIndex) {
   return el;
 }
 
-function renderCertificates(name, options = {}) {
-  const certs = getCertificates(name);
+function renderCertificates(employeeId, options = {}) {
+  const certs = getCertificates(employeeId);
   if (!certs.length) return null;
 
   const block = document.createElement('div');
@@ -276,20 +282,28 @@ function renderCertificates(name, options = {}) {
 
   const displayName = options.displayName || name;
 
-  certs.forEach((src, i) => {
+  certs.forEach((cert, i) => {
     const item = document.createElement('div');
     item.className = 'cert-item';
 
     const card = document.createElement('div');
     card.className = 'cert-card';
+    card.role = 'button';
+    card.tabIndex = 0;
+    card.setAttribute('aria-label', t('certs.alt', { n: i + 1 }));
     card.style.animationDelay = `${0.5 + i * 0.07}s`;
     card.innerHTML = `
-      <img class="cert-card__img" src="${src}" alt="${t('certs.alt', { n: i + 1 })}" loading="lazy">
+      <img class="cert-card__img" src="${cert.thumb}" alt="${t('certs.alt', { n: i + 1 })}" loading="lazy">
       <div class="cert-card__overlay">
         <span class="cert-card__zoom">${t('certs.zoom')}</span>
       </div>
     `;
-    card.addEventListener('click', () => openLightbox(certs, i));
+    card.addEventListener('click', () => openLightbox(certs, i, card));
+    card.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openLightbox(certs, i, card);
+    });
     item.appendChild(card);
 
     const pdfBtn = document.createElement('button');
@@ -302,7 +316,7 @@ function renderCertificates(name, options = {}) {
       </svg>
       <span>${t('certs.download')}</span>
     `;
-    pdfBtn.addEventListener('click', () => printCertificate(item, displayName, i));
+    pdfBtn.addEventListener('click', () => printCertificate(item, cert, displayName, i));
     item.appendChild(pdfBtn);
 
     grid.appendChild(item);
@@ -324,7 +338,7 @@ function renderPortfolio(employee) {
   header.innerHTML = `
     <img class="portfolio__photo" src="${employee.photo}" alt="${employee.name}">
     <div class="portfolio__info">
-      <h2 class="portfolio__name">${employee.name}</h2>
+      <h1 class="portfolio__name">${employee.name}</h1>
       <p class="portfolio__role role">${employee.role}</p>
       ${employee.office ? `<span class="portfolio__office">${employee.office}</span>` : ''}
       <div class="portfolio__languages">
@@ -397,9 +411,10 @@ function renderPortfolio(employee) {
   document.getElementById('downloadPdfBtn')?.addEventListener('click', () => printResume(employee));
 
   // ----- Certificates -----
-  const certsBlock = renderCertificates(employee.assetName, { displayName: employee.name });
+  const certsBlock = renderCertificates(employee.id, { displayName: employee.name });
   if (certsBlock) portfolioContent.appendChild(certsBlock);
 
+  updateDocumentTitle();
   renderOtherEmployees(employee.id);
 }
 
@@ -413,9 +428,7 @@ function printResume(employee) {
 
   // Возвращаем заголовок из словаря, а не из сохранённого значения: иначе
   // повторный клик или смена языка во время печати оставят имя файла в титуле
-  const restoreTitle = () => {
-    document.title = t('meta.title');
-  };
+  const restoreTitle = updateDocumentTitle;
   window.addEventListener('afterprint', restoreTitle, { once: true });
 
   window.print();
@@ -428,7 +441,7 @@ function printResume(employee) {
  * Печатает один сертификат. Ориентация страницы берётся из пропорций
  * изображения: среди сертификатов есть и портретные, и альбомные.
  */
-async function printCertificate(item, displayName, index) {
+async function printCertificate(item, cert, displayName, index) {
   // Быстрый повторный клик мог оставить прошлый сертификат помеченным —
   // иначе в печать попали бы оба
   document.querySelectorAll('.cert-item--printing').forEach((el) => el.classList.remove('cert-item--printing'));
@@ -436,7 +449,12 @@ async function printCertificate(item, displayName, index) {
 
   const img = item.querySelector('.cert-card__img');
 
-  // Картинки помечены loading="lazy" — до печати могут быть не загружены
+  // В сетке висит превью на 400 px — на A4 его бы размазало, поэтому
+  // на время печати подставляем полноразмерную картинку
+  const thumbSrc = img.src;
+  img.src = cert.full;
+
+  // Картинка ещё и ленивая — до печати может быть не загружена
   if (!img.complete || !img.naturalWidth) {
     await new Promise((resolve) => {
       img.addEventListener('load', resolve, { once: true });
@@ -463,7 +481,8 @@ async function printCertificate(item, displayName, index) {
     document.body.removeAttribute('data-print');
     item.classList.remove('cert-item--printing');
     pageStyle.remove();
-    document.title = t('meta.title');
+    img.src = thumbSrc;
+    updateDocumentTitle();
   };
   window.addEventListener('afterprint', cleanup, { once: true });
 
@@ -471,29 +490,261 @@ async function printCertificate(item, displayName, index) {
   setTimeout(cleanup, 500);
 }
 
-function renderOtherEmployees(currentId) {
-  otherEmployeesGrid.innerHTML = '';
-  const otherEmployees = people.filter((e) => e.id !== currentId);
-  
-  otherEmployees.forEach((emp, i) => {
-    const card = document.createElement('article');
-    card.className = 'employee-card';
-    if (viewedEmployees.has(emp.id)) {
-      card.classList.add('employee-card--viewed');
-    }
-    card.style.animationDelay = `${0.05 * i}s`;
-    card.innerHTML = `
+/**
+ * Карточка сотрудника — ссылка на его страницу. Так она попадает в обход
+ * с клавиатуры, открывается в новой вкладке и остаётся ссылкой для краулера;
+ * обычный клик перехватываем и показываем профиль без перезагрузки.
+ */
+function createEmployeeCard(emp, index) {
+  const card = document.createElement('a');
+  card.className = 'employee-card';
+  card.href = profileUrl(emp.id);
+  if (viewedEmployees.has(emp.id)) {
+    card.classList.add('employee-card--viewed');
+  }
+  card.style.animationDelay = `${0.05 * index}s`;
+  card.innerHTML = `
       <div class="employee-card__photo-wrap">
         <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
       </div>
       <h2 class="employee-card__name">${emp.name}</h2>
       <p class="employee-card__role">${emp.role}</p>
-    `;
-    withPhotoFallback(card.querySelector('.employee-card__photo'));
-    card.addEventListener('click', () => openPortfolio(emp.id));
-    otherEmployeesGrid.appendChild(card);
+  `;
+  withPhotoFallback(card.querySelector('.employee-card__photo'));
+
+  card.addEventListener('click', (e) => {
+    // Ctrl/Cmd/Shift и средняя кнопка — работа браузера, не перехватываем
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    openPortfolio(emp.id);
   });
+
+  return card;
 }
+
+function renderOtherEmployees(currentId) {
+  otherEmployeesGrid.innerHTML = '';
+  people
+    .filter((e) => e.id !== currentId)
+    .forEach((emp, i) => otherEmployeesGrid.appendChild(createEmployeeCard(emp, i)));
+}
+
+// ----- Comparison -----
+const COMPARE_PATH = '/compare';
+const compareTable = document.getElementById('compareTable');
+const compareHint = document.getElementById('compareHint');
+const compareOnlyDiff = document.getElementById('compareOnlyDiff');
+
+const isComparePath = () => location.pathname.replace(/\/+$/, '') === COMPARE_PATH;
+
+/** Отмеченные сотрудники в порядке общего списка, а не в порядке отметки */
+const comparedEmployees = () => people.filter((emp) => bookmarkedEmployees.has(emp.id));
+
+/**
+ * Строки таблицы: фиксированные поля плюс объединение заголовков секций,
+ * отсортированных по частоте. Список строк не приходится вести отдельно —
+ * он следует за данными: появится новая секция, появится и строка.
+ */
+function comparisonRows(list) {
+  const sectionsOf = (emp) => [...emp.left, ...emp.right];
+
+  const rows = [
+    { label: t('compare.role'), kind: 'text', values: list.map((e) => [e.role]) },
+    { label: t('compare.office'), kind: 'text', values: list.map((e) => (e.office ? [e.office] : [])) },
+    { label: t('compare.languages'), kind: 'flags', values: list.map((e) => e.languages) },
+    { label: t('compare.tags'), kind: 'tags', values: list.map((e) => e.tags) },
+    { label: t('compare.certificates'), kind: 'certs', values: list.map((e) => getCertificates(e.id)) },
+  ];
+
+  const frequency = new Map();
+  for (const emp of list) {
+    for (const section of sectionsOf(emp)) {
+      frequency.set(section.title, (frequency.get(section.title) || 0) + 1);
+    }
+  }
+
+  for (const [title] of [...frequency.entries()].sort((a, b) => b[1] - a[1])) {
+    rows.push({
+      label: title,
+      kind: 'list',
+      values: list.map((emp) => {
+        const section = sectionsOf(emp).find((s) => s.title === title);
+        if (!section) return [];
+        // Опыт хранится объектами, остальные типы секций — строками
+        return section.type === 'experience'
+          ? section.items.map((item) => `${item.role} — ${item.company}, ${item.period}`)
+          : section.items;
+      }),
+    });
+  }
+
+  return rows;
+}
+
+/** Ячейка строки: у каждого вида содержимого своя вёрстка */
+function renderCompareCell(row, index) {
+  const cell = document.createElement('td');
+  cell.className = 'compare__cell';
+  const value = row.values[index];
+
+  if (!value.length) {
+    cell.classList.add('compare__cell--empty');
+    cell.textContent = '—';
+    return cell;
+  }
+
+  if (row.kind === 'flags') {
+    const wrap = document.createElement('div');
+    wrap.className = 'compare__flags';
+    for (const code of value) {
+      const img = document.createElement('img');
+      img.className = 'portfolio__flag';
+      img.src = getFlag(code);
+      img.alt = '';
+      wrap.appendChild(img);
+    }
+    cell.appendChild(wrap);
+    return cell;
+  }
+
+  if (row.kind === 'tags') {
+    const wrap = document.createElement('div');
+    wrap.className = 'compare__tags';
+    for (const text of value) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = text;
+      wrap.appendChild(tag);
+    }
+    cell.appendChild(wrap);
+    return cell;
+  }
+
+  if (row.kind === 'certs') {
+    const wrap = document.createElement('div');
+    wrap.className = 'compare__certs';
+    value.forEach((cert, i) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'compare__cert';
+      button.setAttribute('aria-label', t('certs.alt', { n: i + 1 }));
+      const img = document.createElement('img');
+      img.src = cert.thumb;
+      img.alt = '';
+      img.loading = 'lazy';
+      button.appendChild(img);
+      button.addEventListener('click', () => openLightbox(value, i, button));
+      wrap.appendChild(button);
+    });
+    cell.appendChild(wrap);
+    return cell;
+  }
+
+  if (row.kind === 'text' && value.length === 1) {
+    cell.textContent = value[0];
+    return cell;
+  }
+
+  const list = document.createElement('ul');
+  list.className = 'compare__list';
+  for (const text of value) {
+    const item = document.createElement('li');
+    item.textContent = text;
+    list.appendChild(item);
+  }
+  cell.appendChild(list);
+  return cell;
+}
+
+/** Шапка колонки: фото, имя со ссылкой на профиль и кнопка «убрать» */
+function renderCompareHead(employee) {
+  const th = document.createElement('th');
+  th.scope = 'col';
+  th.className = 'compare__person';
+
+  const link = document.createElement('a');
+  link.className = 'compare__person-link';
+  link.href = profileUrl(employee.id);
+  link.innerHTML = `
+    <img class="compare__photo" src="${employee.photo}" alt="" loading="lazy">
+    <span class="compare__name">${employee.name}</span>
+    <span class="compare__role">${employee.role}</span>
+  `;
+  withPhotoFallback(link.querySelector('.compare__photo'));
+  link.addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    openPortfolio(employee.id);
+  });
+
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'compare__remove';
+  remove.setAttribute('aria-label', t('compare.remove', { name: employee.name }));
+  remove.textContent = '×';
+  remove.addEventListener('click', () => toggleBookmark(employee.id));
+
+  th.append(link, remove);
+  return th;
+}
+
+function renderComparison() {
+  const list = comparedEmployees();
+  compareTable.innerHTML = '';
+
+  if (!list.length) {
+    compareHint.hidden = false;
+    compareHint.textContent = t('compare.nothing');
+    return;
+  }
+
+  const rows = comparisonRows(list);
+  // «Только различия» прячет строки, одинаковые у всех: ради них таблицу не открывают
+  const onlyDiff = Boolean(compareOnlyDiff?.checked) && list.length > 1;
+  const same = (row) => new Set(row.values.map((v) => JSON.stringify(v))).size === 1;
+  const visible = onlyDiff ? rows.filter((row) => !same(row)) : rows;
+
+  // Минимальная ширина таблицы зависит от числа колонок — считает CSS
+  compareTable.style.setProperty('--compare-columns', list.length);
+
+  const head = compareTable.createTHead().insertRow();
+  head.appendChild(document.createElement('td')).className = 'compare__corner';
+  for (const employee of list) head.appendChild(renderCompareHead(employee));
+
+  const body = compareTable.createTBody();
+  for (const row of visible) {
+    const tr = body.insertRow();
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.className = 'compare__label';
+    label.textContent = row.label;
+    tr.appendChild(label);
+    list.forEach((employee, i) => tr.appendChild(renderCompareCell(row, i)));
+  }
+
+  if (list.length === 1) {
+    compareHint.hidden = false;
+    compareHint.textContent = t('compare.hintOne');
+  } else if (onlyDiff && !visible.length) {
+    compareHint.hidden = false;
+    compareHint.textContent = t('compare.hintSame');
+  } else {
+    compareHint.hidden = true;
+  }
+}
+
+/** immediate — заход по прямому адресу: страница и так грузится, переход не нужен */
+function openComparison({ push = true, immediate = false } = {}) {
+  renderComparison();
+  currentEmployeeId = null;
+  document.title = t('meta.compareTitle');
+  if (push) history.pushState(null, '', COMPARE_PATH);
+  if (immediate) revealImmediately(compareView);
+  else showView(compareView);
+  window.scrollTo({ top: 0, behavior: scrollBehavior() });
+}
+
+compareOnlyDiff?.addEventListener('change', renderComparison);
 
 // ----- Search & Filter -----
 const searchInput = document.getElementById('searchInput');
@@ -539,7 +790,9 @@ function getTagLabel(tagKey) {
 }
 
 function getEmployeesMatchingTagAndQuery(tagKey, query) {
-  const q = query.trim().toLowerCase();
+  // Запрос разбиваем на слова: «аудит Ташкент» должно находить человека,
+  // у которого эти слова стоят в разных пунктах резюме
+  const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
   const [kind, value] = splitTag(tagKey);
 
   return people.filter((emp) => {
@@ -549,11 +802,9 @@ function getEmployeesMatchingTagAndQuery(tagKey, query) {
       (kind === 'office' && emp.officeKey === value) ||
       (kind === 'role' && emp.roleKey === value);
 
-    const matchesQuery =
-      !q ||
-      emp.name.toLowerCase().includes(q) ||
-      emp.role.toLowerCase().includes(q) ||
-      emp.tags.some((tagText) => tagText.toLowerCase().includes(q));
+    // emp.search — имя, роль, офис, теги и текст всех секций одной строкой.
+    // Пустой запрос даёт пустой terms, а every по нему — true
+    const matchesQuery = terms.every((term) => emp.search.includes(term));
 
     return matchesTag && matchesQuery;
   });
@@ -568,16 +819,15 @@ function renderFilterChips() {
     // Чип закладок появляется, только если в закладках кто-то есть
     .filter(({ tag }) => tag !== 'bookmarks' || bookmarkedEmployees.size > 0);
 
-  // Sort so 'All' is first, available tags (count > 0) are next, and disabled (count === 0) are moved to the end
-  tagItems.sort((a, b) => {
-    if (a.tag === 'all') return -1;
-    if (b.tag === 'all') return 1;
-    const aAvailable = a.count > 0;
-    const bAvailable = b.count > 0;
-    if (aAvailable && !bAvailable) return -1;
-    if (!aAvailable && bAvailable) return 1;
-    return 0;
-  });
+  // Порядок групп: «Все», закладки, офисы, дальше должности.
+  // Внутри группы — по убыванию счётчика, поэтому пустые (0) сами уходят в конец.
+  const chipRank = (tag) => {
+    if (tag === 'all') return 0;
+    if (tag === 'bookmarks') return 1;
+    if (tag.startsWith('office:')) return 2;
+    return 3;
+  };
+  tagItems.sort((a, b) => chipRank(a.tag) - chipRank(b.tag) || b.count - a.count);
 
   tagItems.forEach(({ tag, count }) => {
     const chip = document.createElement('button');
@@ -590,22 +840,24 @@ function renderFilterChips() {
     }
 
     if (tag === 'bookmarks') {
-      // Только иконка — подпись и счётчик уходят в aria-label и подсказку
       const label = `${t('filter.bookmarks')} (${count})`;
       chip.classList.add('filter-chip--bookmarks');
       chip.setAttribute('aria-label', label);
       chip.title = label;
       chip.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        </svg>
+        <span class="filter-chip__label">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </span>
+        <span class="filter-chip__count">${count}</span>
       `;
     } else {
       if (tag === 'all') chip.classList.add('filter-chip--all');
       else if (tag.startsWith('office:')) chip.classList.add('filter-chip--office');
       chip.innerHTML = `
-        <span>${getTagLabel(tag)}</span>
-        <span class="filter-chip__count">(${count})</span>
+        <span class="filter-chip__label">${getTagLabel(tag)}</span>
+        <span class="filter-chip__count">${count}</span>
       `;
     }
 
@@ -671,88 +923,119 @@ if (resetFiltersBtn) {
 
 function renderCards(list = people) {
   cardsGrid.innerHTML = '';
-  list.forEach((emp, i) => {
-    const card = document.createElement('article');
-    card.className = 'employee-card';
-    if (viewedEmployees.has(emp.id)) {
-      card.classList.add('employee-card--viewed');
-    }
-    card.style.animationDelay = `${0.05 * i}s`;
-    card.innerHTML = `
-      <div class="employee-card__photo-wrap">
-        <img class="employee-card__photo" src="${emp.photo}" alt="${emp.name}" loading="lazy">
-      </div>
-      <h2 class="employee-card__name">${emp.name}</h2>
-      <p class="employee-card__role">${emp.role}</p>
-    `;
-    withPhotoFallback(card.querySelector('.employee-card__photo'));
-    card.addEventListener('click', () => openPortfolio(emp.id));
-    cardsGrid.appendChild(card);
-  });
+  list.forEach((emp, i) => cardsGrid.appendChild(createEmployeeCard(emp, i)));
 }
 
-function switchView(toPortfolio) {
-  if (toPortfolio) {
-    backBtn.style.display = 'inline-flex';
-    homeView.classList.add('view--leaving');
-    homeView.classList.remove('view--active');
-    setTimeout(() => {
-      homeView.hidden = true;
-      portfolioView.hidden = false;
-      requestAnimationFrame(() => {
-        portfolioView.classList.add('view--active');
-      });
-    }, 300);
-  } else {
-    backBtn.style.display = 'none';
-    portfolioView.classList.remove('view--active');
-    portfolioView.classList.add('view--leaving');
-    setTimeout(() => {
-      portfolioView.hidden = true;
-      portfolioView.classList.remove('view--leaving');
-      homeView.hidden = false;
-      homeView.classList.remove('view--leaving');
-      requestAnimationFrame(() => {
-        homeView.classList.add('view--active');
-      });
-    }, 300);
-    history.pushState(null, '', '#');
-  }
+/** Показывает один из видов, гася предыдущий. Адрес и заголовок — на вызывающем */
+function showView(target) {
+  const views = [homeView, compareView, portfolioView];
+  const current = views.find((v) => !v.hidden);
+  backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
+  if (current === target) return;
+
+  current.classList.remove('view--active');
+  current.classList.add('view--leaving');
+  setTimeout(() => {
+    current.hidden = true;
+    current.classList.remove('view--leaving');
+    target.hidden = false;
+    target.classList.remove('view--leaving');
+    requestAnimationFrame(() => target.classList.add('view--active'));
+  }, viewTransitionMs());
+}
+
+/** Возврат к списку команды. push=false — когда сюда привёл сам браузер */
+function goHome({ push = true } = {}) {
+  currentEmployeeId = null;
+  updateDocumentTitle();
+  if (push) history.pushState(null, '', '/');
+  showView(homeView);
 }
 
 let currentEmployeeId = null;
+
+/** Профиль живёт по своему адресу — его и индексирует поиск, и разворачивают мессенджеры */
+const PROFILE_PREFIX = '/team/';
+
+const profileUrl = (id) => `${PROFILE_PREFIX}${id}`;
+
+/** id сотрудника из адреса; старые ссылки вида #id тоже понимаем */
+function employeeIdFromUrl() {
+  const path = location.pathname.replace(/\/+$/, '');
+  if (path.startsWith(PROFILE_PREFIX)) return decodeURIComponent(path.slice(PROFILE_PREFIX.length));
+  return location.hash.slice(1);
+}
+
+/** Заголовок вкладки: на странице сотрудника — его имя и должность */
+function updateDocumentTitle() {
+  if (!compareView.hidden) {
+    document.title = t('meta.compareTitle');
+    return;
+  }
+  const employee = currentEmployeeId && people.find((e) => e.id === currentEmployeeId);
+  document.title = employee
+    ? t('meta.personTitle', { name: employee.name, role: employee.role })
+    : t('meta.title');
+}
 
 function openPortfolio(id) {
   const employee = people.find((e) => e.id === id);
   if (!employee) return;
   currentEmployeeId = id;
   viewedEmployees.add(id);
+  writeIdSet(VIEWED_KEY, viewedEmployees);
   renderPortfolio(employee);
-  renderCards();
-  switchView(true);
-  history.pushState({ id }, '', `#${id}`);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Именно applyFilters, а не renderCards: иначе после возврата из профиля
+  // чип остаётся активным, а в сетке снова все
+  applyFilters();
+  showView(portfolioView);
+  history.pushState({ id }, '', profileUrl(id));
+  window.scrollTo({ top: 0, behavior: scrollBehavior() });
 }
 
-function openLightbox(certs, index) {
+function openLightbox(certs, index, trigger) {
   currentCerts = certs;
   currentCertIndex = index;
+  lightboxTrigger = trigger || null;
   updateLightbox();
   lightbox.hidden = false;
   document.body.style.overflow = 'hidden';
+  lightboxClose.focus();
 }
 
 function closeLightbox() {
   lightbox.hidden = true;
   document.body.style.overflow = '';
   lightboxLens.style.display = 'none';
+  // Возвращаем фокус туда, откуда открыли, иначе он падает в начало страницы
+  lightboxTrigger?.focus();
+  lightboxTrigger = null;
+}
+
+/**
+ * Пока диалог открыт, Tab ходит только по его кнопкам. Стрелки листания
+ * скрыты при единственном сертификате и в обход не попадают.
+ */
+function trapLightboxFocus(e) {
+  const focusable = [lightboxClose, lightboxPrev, lightboxNext].filter((el) => !el.hidden);
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+
+  if (e.shiftKey && (active === first || !lightbox.contains(active))) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (active === last || !lightbox.contains(active))) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 function updateLightbox() {
-  lightboxImg.src = currentCerts[currentCertIndex];
+  lightboxImg.src = currentCerts[currentCertIndex].full;
   lightboxCounter.textContent = `${currentCertIndex + 1} / ${currentCerts.length}`;
-  lightboxPrev.style.visibility = currentCerts.length > 1 ? 'visible' : 'hidden';
-  lightboxNext.style.visibility = currentCerts.length > 1 ? 'visible' : 'hidden';
+  lightboxPrev.hidden = currentCerts.length < 2;
+  lightboxNext.hidden = currentCerts.length < 2;
   lightboxLens.style.display = 'none';
 }
 
@@ -764,9 +1047,9 @@ function navigateLightbox(dir) {
   updateLightbox();
 }
 
-backBtn.addEventListener('click', () => switchView(false));
+backBtn.addEventListener('click', () => goHome());
 logoBtn.addEventListener('click', () => {
-  if (!portfolioView.hidden) switchView(false);
+  if (homeView.hidden) goHome();
 });
 
 lightboxClose.addEventListener('click', closeLightbox);
@@ -828,10 +1111,6 @@ lightboxImg.addEventListener('mouseleave', () => {
   lightboxLens.style.display = 'none';
 });
 
-lightboxImg.addEventListener('click', () => {
-  window.open(lightboxImg.src, '_blank');
-});
-
 // Global Keyboard Navigation
 document.addEventListener('keydown', (e) => {
   // Ignore keyboard shortcuts when typing in search input
@@ -851,13 +1130,14 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowLeft') navigateLightbox(-1);
     if (e.key === 'ArrowRight') navigateLightbox(1);
+    if (e.key === 'Tab') trapLightboxFocus(e);
     return;
   }
 
   // 2. Portfolio view active
   if (!portfolioView.hidden) {
     if (e.key === 'Escape') {
-      switchView(false);
+      goHome();
       return;
     }
 
@@ -873,37 +1153,52 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('popstate', () => {
-  const hash = location.hash.slice(1);
-  if (hash) {
-    const employee = people.find((e) => e.id === hash);
-    if (employee) {
-      currentEmployeeId = hash;
-      renderPortfolio(employee);
-      if (portfolioView.hidden) switchView(true);
-      return;
-    }
+  const id = employeeIdFromUrl();
+  const employee = id ? people.find((e) => e.id === id) : null;
+  if (employee) {
+    currentEmployeeId = employee.id;
+    renderPortfolio(employee);
+    updateDocumentTitle();
+    showView(portfolioView);
+    return;
   }
-  if (!portfolioView.hidden) switchView(false);
+  if (isComparePath()) {
+    openComparison({ push: false });
+    return;
+  }
+  // push: false — запись в истории уже сменил сам браузер
+  goHome({ push: false });
 });
 
-function initFromHash() {
-  const hash = location.hash.slice(1);
-  if (hash) {
-    const employee = people.find((e) => e.id === hash);
-    if (employee) {
-      currentEmployeeId = hash;
-      renderPortfolio(employee);
-      homeView.hidden = true;
-      homeView.classList.remove('view--active');
-      portfolioView.hidden = false;
-      portfolioView.classList.add('view--active');
-      backBtn.style.display = 'inline-flex';
-    } else {
-      backBtn.style.display = 'none';
-    }
-  } else {
-    backBtn.style.display = 'none';
+function initFromUrl() {
+  if (isComparePath()) {
+    openComparison({ push: false, immediate: true });
+    return;
   }
+
+  const id = employeeIdFromUrl();
+  const employee = id ? people.find((e) => e.id === id) : null;
+  if (!employee) {
+    backBtn.style.display = 'none';
+    return;
+  }
+
+  // Ссылки, разосланные до перехода на /team/<id>, переводим на постоянный адрес
+  if (location.hash) history.replaceState({ id: employee.id }, '', profileUrl(employee.id));
+
+  currentEmployeeId = employee.id;
+  renderPortfolio(employee);
+  revealImmediately(portfolioView);
+}
+
+/** Первый показ при заходе по прямому адресу — без перехода, страница и так грузится */
+function revealImmediately(target) {
+  for (const view of [homeView, compareView, portfolioView]) {
+    view.hidden = view !== target;
+    view.classList.toggle('view--active', view === target);
+    view.classList.remove('view--leaving');
+  }
+  backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
 }
 
 // ----- Scroll To Top Button -----
@@ -921,7 +1216,7 @@ window.addEventListener('scroll', () => {
 
 if (scrollTopBtn) {
   scrollTopBtn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
   });
 }
 
@@ -955,4 +1250,4 @@ applyStaticTranslations();
 updateLangSwitchUI();
 renderFilterChips();
 renderCards();
-initFromHash();
+initFromUrl();

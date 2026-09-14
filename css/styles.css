@@ -6,7 +6,6 @@
   --color-accent: #011E41;
   --color-white: #ffffff;
   --color-border: rgba(1, 30, 65, 0.15);
-  --color-shadow: rgba(1, 30, 65, 0.06);
 
   --color-card-bg: #FFFFFF;
   --color-card-border: rgba(1, 30, 65, 0.15);
@@ -59,7 +58,6 @@
   --color-accent: #990F3D;
   --color-white: #ffffff;
   --color-border: rgba(38, 42, 51, 0.18);
-  --color-shadow: rgba(38, 42, 51, 0.08);
 
   --color-card-bg: #FFEBD9;
   --color-card-border: #FCD0B1;
@@ -151,14 +149,6 @@ body {
   border: 1px solid var(--color-tag-border);
   border-radius: var(--radius-tag);
   white-space: nowrap;
-  transition: border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
-}
-
-.tag:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  transform: translateY(-0.0625rem);
-  /* -1px */
 }
 
 .role {
@@ -295,7 +285,7 @@ body {
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .portfolio__download-btn:hover,
@@ -303,7 +293,6 @@ body {
 .portfolio__bookmark-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
-  transform: translateY(-2px);
 }
 
 .portfolio__bookmark-btn--active {
@@ -327,7 +316,6 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
   opacity: 0;
   transform: translateY(10px);
   pointer-events: none;
@@ -344,7 +332,6 @@ body {
   opacity: 1;
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-2px);
 }
 
 .logo-btn {
@@ -383,6 +370,7 @@ body {
 .lang-switch {
   display: inline-flex;
   align-items: center;
+  height: 2.25rem;
   padding: 0.1875rem;
   gap: 0.125rem;
   background: transparent;
@@ -391,7 +379,11 @@ body {
 }
 
 .lang-switch__btn {
-  padding: 0.3125rem 0.6875rem;
+  height: 100%;
+  padding: 0 0.6875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   border-radius: var(--radius-tag);
@@ -420,8 +412,9 @@ body {
 .theme-toggle-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
+  height: 2.25rem;
+  gap: 0.35rem;
+  padding: 0 0.85rem;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-tag);
@@ -430,19 +423,18 @@ body {
   font-size: var(--tag-size);
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .theme-toggle-btn:hover {
   border-color: var(--color-accent);
-  transform: translateY(-0.0625rem);
 }
 
 .compare-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
+  gap: 0.2rem;
+  padding: 0 0 0 0.85rem;
   background: transparent;
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-tag);
@@ -451,13 +443,34 @@ body {
   font-size: var(--tag-size);
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .compare-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
-  transform: translateY(-0.0625rem);
+}
+
+.compare-btn svg {
+  display: block;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  margin-right: 0.15rem;
+}
+
+.compare-btn__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--chip-h, 1.5rem);
+  height: var(--chip-h, 1.5rem);
+  margin: 5px;
+  border-radius: 50%;
+  font-size: var(--tag-size);
+  font-weight: 500;
+  border: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
 }
 
 .theme-toggle-btn__dot {
@@ -549,6 +562,19 @@ body {
   transition: opacity var(--transition-fast);
 }
 
+/* Виден скринридеру и поисковику, но не занимает места на экране */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .search-box__input {
   width: 100%;
   padding: 0.65rem 2.25rem 0.65rem 2.6rem;
@@ -560,7 +586,7 @@ body {
   font-size: 0.9375rem;
   color: var(--color-text);
   outline: none;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .search-box__input::placeholder {
@@ -570,7 +596,6 @@ body {
 
 .search-box__input:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(1, 30, 65, 0.08);
 }
 
 .search-box__clear {
@@ -598,119 +623,437 @@ body {
   align-items: center;
 }
 
+/* Чип фильтра — одна пилюля, счётчик внутри неё в обведённом кружке.
+   Цвет задают варианты через переменные. */
 .filter-chip {
-  padding: 0.35rem 0.85rem;
+  --chip-h: 1.5rem;
+  /* 29px — внешняя высота чипа. Кружок ровно такой же и вытянут наружу
+     отрицательными полями, чтобы его обводка легла на рамку пилюли:
+     иначе на торце видно две линии подряд. */
+  --chip-bg: var(--color-tag-bg);
+  --chip-border: var(--color-tag-border);
+  --chip-fg: var(--color-text);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0 0 0 0.85rem;
   font-family: var(--font);
   font-size: var(--tag-size);
   font-weight: 500;
-  border: 1px solid var(--color-tag-border);
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
   border-radius: var(--radius-tag);
-  background: var(--color-tag-bg);
-  color: var(--color-text);
+  color: var(--chip-fg);
   cursor: pointer;
   opacity: 0.85;
-  transition: opacity var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   user-select: none;
+  transition: opacity var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* Подпись держит высоту чипа — вертикальных отступов у пилюли нет */
+.filter-chip__label {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  height: calc(var(--chip-h) - 2px);
+}
+
+/* Без счётчика подпись прижималась бы к правому краю вплотную */
+.filter-chip:not(:has(.filter-chip__count)):not(.filter-chip--bookmarks) {
+  padding-right: 0.85rem;
 }
 
 .filter-chip__count {
-  font-size: 0.75rem;
-  opacity: 0.6;
-  font-weight: 400;
-}
-
-.filter-chip--active .filter-chip__count {
-  opacity: 0.85;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--chip-h);
+  height: var(--chip-h);
+  margin: 5px;
+  border-radius: 50%;
+  /* Обводка кружка — приглушённый текущий цвет: сама подстраивается
+     и под белые чипы, и под залитые */
+  border: 1px solid var(--chip-border);
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
 }
 
 .filter-chip:hover {
   opacity: 1;
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-1px);
 }
 
 .filter-chip--active {
+  --chip-bg: var(--color-accent);
+  --chip-border: var(--color-accent);
+  --chip-fg: var(--color-btn-text);
   opacity: 1;
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-btn-text);
 }
 
 .filter-chip--active:hover {
-  color: var(--color-btn-text);
+  color: var(--chip-fg);
 }
 
 .filter-chip:disabled,
 .filter-chip--disabled {
+  --chip-bg: var(--color-card-bg) !important;
+  --chip-border: var(--color-tag-border) !important;
+  --chip-fg: var(--color-text) !important;
   opacity: 0.45 !important;
-  color: var(--color-text) !important;
   cursor: not-allowed !important;
-  border-color: var(--color-tag-border) !important;
-  background: var(--color-card-bg) !important;
-  transform: none !important;
   pointer-events: none;
 }
 
-.filter-chip:disabled .filter-chip__count,
-.filter-chip--disabled .filter-chip__count {
-  opacity: 0.65 !important;
-  color: var(--color-text) !important;
-}
-
-/* Акцентные чипы: «Все» — фирменный чёрный, закладки — иконка в фирменном цвете */
+/* Акцентные чипы: «Все» — фирменный чёрный, офис и закладки — фирменный жёлтый.
+   При наведении они не перекрашиваются, только приподнимаются. */
 .filter-chip--all,
-.filter-chip--all:hover,
-.filter-chip--all.filter-chip--active {
+.filter-chip--all:hover {
+  --chip-bg: var(--color-chip-all);
+  --chip-border: var(--color-chip-all);
+  --chip-fg: var(--color-white);
   opacity: 1;
-  background: var(--color-chip-all);
-  border-color: var(--color-chip-all);
-  color: var(--color-white);
+  border-color: var(--chip-border);
+  color: var(--chip-fg);
 }
 
+.filter-chip--office,
+.filter-chip--office:hover,
 .filter-chip--bookmarks,
-.filter-chip--bookmarks:hover,
-.filter-chip--bookmarks.filter-chip--active {
-  padding: 0.35rem;
-  gap: 0;
+.filter-chip--bookmarks:hover {
+  --chip-bg: var(--color-chip-bookmarks);
+  --chip-border: var(--color-chip-bookmarks);
+  --chip-fg: var(--color-white);
   opacity: 1;
-  background: var(--color-chip-bookmarks);
-  border-color: var(--color-chip-bookmarks);
-  color: var(--color-white);
+  border-color: var(--chip-border);
+  color: var(--chip-fg);
+}
+
+/* Чип закладок — иконка + текст + счётчик в фирменных цветах */
+.filter-chip--bookmarks {
+}
+
+.filter-chip--bookmarks .filter-chip__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-chip--bookmarks svg {
   display: block;
-  /* подогнано под высоту текстовых чипов */
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
-/* Офис — текстовый чип в тех же цветах, что и закладки */
-.filter-chip--office,
-.filter-chip--office:hover,
-.filter-chip--office.filter-chip--active {
-  opacity: 1;
-  background: var(--color-chip-bookmarks);
-  border-color: var(--color-chip-bookmarks);
-  color: var(--color-white);
+.filter-chip--bookmarks .filter-chip__count {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* Активное состояние — кольцо с зазором, иначе не видно на залитом фоне */
+/* Активное состояние акцентных — кольцо с зазором: на залитом фоне иначе не видно.
+   Именно outline, а не тень: тени на сайте не используются. */
 .filter-chip--all.filter-chip--active,
 .filter-chip--office.filter-chip--active,
 .filter-chip--bookmarks.filter-chip--active {
-  box-shadow: 0 0 0 0.125rem var(--color-bg), 0 0 0 0.1875rem var(--color-accent);
+  outline: 1px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .filter-chip--bookmarks:disabled,
 .filter-chip--bookmarks.filter-chip--disabled {
-  background: var(--color-chip-bookmarks) !important;
-  border-color: var(--color-chip-bookmarks) !important;
-  color: var(--color-white) !important;
+  --chip-bg: var(--color-chip-bookmarks) !important;
+  --chip-border: var(--color-chip-bookmarks) !important;
+  --chip-fg: var(--color-white) !important;
+}
+
+/* ===== Сравнение ===== */
+/* Ширину и боковые отступы задаёт #app: свои добавлять нельзя, иначе таблица
+   встаёт уже логотипа и кнопок в шапке */
+.compare {
+  padding-bottom: 4rem;
+}
+
+/* В панели остался только переключатель — прижимаем его вправо */
+.compare__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.compare__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.85rem;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-tag);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: var(--tag-size);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.compare__toggle:hover {
+  border-color: var(--color-accent);
+}
+
+.compare__toggle:has(#compareOnlyDiff:checked) {
+  border-color: var(--color-accent);
+}
+
+#compareOnlyDiff {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.25rem;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+#compareOnlyDiff:hover {
+  border-color: var(--color-accent);
+}
+
+#compareOnlyDiff:checked {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5'/%3E%3C/svg%3E");
+  background-size: 0.75rem;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#compareOnlyDiff:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.compare__hint {
+  margin-bottom: 1.25rem;
+  font-size: var(--tag-size);
+  opacity: 0.7;
+}
+
+/* Колонок может быть больше, чем влезает: таблица едет вбок, а не ломает вёрстку */
+.compare__scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-card);
+}
+
+/* table-layout: fixed работает только при заданной ширине: с max-content браузер
+   откатывается на автораскладку и раздаёт остаток неравномерно. Поэтому ширина
+   100%, а минимум считается от числа колонок — тогда при многих людях таблица
+   выезжает в прокрутку, а колонки остаются одинаковыми. */
+.compare__table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+  min-width: calc(12rem + var(--compare-columns, 3) * 18rem);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+}
+
+.compare__table th,
+.compare__table td {
+  padding: 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid var(--color-card-border);
+  border-left: 1px solid var(--color-card-border);
+}
+
+.compare__table thead th,
+.compare__corner {
+  border-top: 0;
+}
+
+.compare__table th:first-child,
+.compare__table td:first-child {
+  border-left: 0;
+}
+
+/* Подпись строки держится на месте при боковой прокрутке */
+.compare__label,
+.compare__corner {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 12rem;
+  background: var(--color-card-bg);
+  font-weight: 600;
+  font-size: 1rem;
+  /* 16px — крупнее содержимого ячеек: это заголовок строки */
+  line-height: 1.25;
+}
+
+/* Ширину не задаём: при table-layout: fixed остаток делится между колонками
+   поровну, а нижнюю границу держит min-width таблицы */
+.compare__person {
+  position: relative;
+  background: var(--color-card-bg);
+}
+
+.compare__table thead th,
+.compare__table thead td {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-card-bg);
+}
+
+.compare__table thead .compare__corner {
+  z-index: 3;
+}
+
+.compare__person-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.compare__person-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.compare__photo {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-card-border);
+}
+
+.compare__name {
+  font-weight: 600;
+}
+
+.compare__role {
+  font-size: var(--tag-size);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.compare__remove {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-card-border);
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast), border-color var(--transition-fast);
+}
+
+.compare__remove:hover {
+  opacity: 1;
+  border-color: var(--color-accent);
+}
+
+.compare__cell {
+  font-weight: 300;
+  font-size: 0.9375rem;
+  /* 15px */
+  line-height: 1.35;
+}
+
+.compare__cell--empty {
+  opacity: 0.35;
+}
+
+.compare__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.compare__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+/* Базовый .tag не переносится: в узкой колонке длинная компетенция
+   вылезала за ячейку и добавляла горизонтальную прокрутку */
+.compare__tags .tag {
+  padding: 0.25rem 0.6rem;
+  white-space: normal;
+  text-align: left;
+}
+
+.compare__flags {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.compare__certs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.compare__cert {
+  width: 4.5rem;
+  height: 6rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-card-border);
+  border-radius: 0.5rem;
+  background: none;
+  cursor: pointer;
+}
+
+.compare__cert img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+
+.compare__cert:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .compare__label,
+  .compare__corner {
+    width: 9rem;
+    font-size: 0.9375rem;
+  }
+
+  .compare__person {
+    min-width: 12rem;
+  }
 }
 
 .no-results {
@@ -753,12 +1096,21 @@ body {
   /* 24px */
 }
 
+/* Карточка — ссылка на страницу профиля: сбрасываем оформление ссылки,
+   но оставляем её доступной с клавиатуры */
+.employee-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
 .employee-card {
   background: var(--color-card-bg);
   border-radius: 1rem;
   padding: 2rem;
   /* 28px 24px 24px */
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   border: 1px solid var(--color-card-border);
   display: flex;
   flex-direction: column;
@@ -1153,7 +1505,7 @@ body {
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .cert-item__pdf-btn svg {
@@ -1164,7 +1516,11 @@ body {
 .cert-item__pdf-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
-  transform: translateY(-2px);
+}
+
+.cert-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .cert-card {
@@ -1633,6 +1989,22 @@ body {
   }
 }
 /* ===== Печать: резюме на одну страницу A4 landscape ===== */
+/* Гасим движение по системной настройке. Анимации именно доигрывают мгновенно,
+   а не выключаются: у части элементов конечное состояние задаёт сама анимация
+   (fill both), и с animation: none они остались бы прозрачными. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media print {
   @page {
     size: A4 landscape;

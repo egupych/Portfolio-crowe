@@ -1,0 +1,10 @@
+# Исходники картинок: браузер запрашивает только WebP из photos/webp,
+# certificates/webp и certificates/thumb, а PNG — 37 МБ мёртвого груза в выкладке.
+# В репозитории они остаются: из них всё и собирается.
+photos/*.png
+certificates/*.png
+
+# Инструменты разработки на CDN не нужны
+scripts/
+tests/
+eslint.config.mjs
