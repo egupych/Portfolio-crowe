@@ -819,12 +819,12 @@ function renderFilterChips() {
     // Чип закладок появляется, только если в закладках кто-то есть
     .filter(({ tag }) => tag !== 'bookmarks' || bookmarkedEmployees.size > 0);
 
-  // Порядок групп: «Все», офисы, закладки, дальше должности.
+  // Порядок групп: «Все», закладки, офисы, дальше должности.
   // Внутри группы — по убыванию счётчика, поэтому пустые (0) сами уходят в конец.
   const chipRank = (tag) => {
     if (tag === 'all') return 0;
-    if (tag.startsWith('office:')) return 1;
-    if (tag === 'bookmarks') return 2;
+    if (tag === 'bookmarks') return 1;
+    if (tag.startsWith('office:')) return 2;
     return 3;
   };
   tagItems.sort((a, b) => chipRank(a.tag) - chipRank(b.tag) || b.count - a.count);
@@ -840,17 +840,17 @@ function renderFilterChips() {
     }
 
     if (tag === 'bookmarks') {
-      // Только иконка — подпись и счётчик уходят в aria-label и подсказку
       const label = `${t('filter.bookmarks')} (${count})`;
       chip.classList.add('filter-chip--bookmarks');
       chip.setAttribute('aria-label', label);
       chip.title = label;
       chip.innerHTML = `
         <span class="filter-chip__label">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
           </svg>
         </span>
+        <span class="filter-chip__count">${count}</span>
       `;
     } else {
       if (tag === 'all') chip.classList.add('filter-chip--all');

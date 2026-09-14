@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Статический сайт-портфолио команды Crowe Uzbekistan",
   "scripts": {
+    "dev": "python -m http.server 4173",
     "test": "node --test",
     "lint": "eslint .",
     "check": "npm run lint && npm test && node scripts/check-assets.mjs",
