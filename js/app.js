@@ -681,10 +681,17 @@ function renderCompareHead(employee) {
   remove.type = 'button';
   remove.className = 'compare__remove';
   remove.setAttribute('aria-label', t('compare.remove', { name: employee.name }));
-  remove.textContent = '×';
+  remove.innerHTML = `
+    <svg width="8" height="8" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
   remove.addEventListener('click', () => toggleBookmark(employee.id));
 
-  th.append(link, remove);
+  const inner = document.createElement('div');
+  inner.className = 'compare__person-inner';
+  inner.append(link, remove);
+  th.append(inner);
   return th;
 }
 

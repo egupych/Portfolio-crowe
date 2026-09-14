@@ -906,8 +906,15 @@ body {
 /* Ширину не задаём: при table-layout: fixed остаток делится между колонками
    поровну, а нижнюю границу держит min-width таблицы */
 .compare__person {
-  position: relative;
   background: var(--color-card-bg);
+  vertical-align: top;
+}
+
+.compare__person-inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .compare__table thead th,
@@ -929,6 +936,8 @@ body {
   gap: 0.35rem;
   text-decoration: none;
   color: inherit;
+  flex: 1;
+  min-width: 0;
 }
 
 .compare__person-link:focus-visible {
@@ -955,25 +964,34 @@ body {
 }
 
 .compare__remove {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 1.75rem;
-  height: 1.75rem;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: 50%;
   border: 1px solid var(--color-card-border);
-  background: var(--color-card-bg);
+  background: transparent;
   color: var(--color-text);
-  font-size: 1.125rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity var(--transition-fast), border-color var(--transition-fast);
+  opacity: 0.4;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+  margin-top: 0.1rem;
+}
+
+.compare__remove svg {
+  display: block;
+  transition: transform 0.22s ease-out;
 }
 
 .compare__remove:hover {
   opacity: 1;
-  border-color: var(--color-accent);
+  border-color: var(--color-text);
+}
+
+.compare__remove:hover svg {
+  transform: rotate(90deg);
 }
 
 .compare__cell {
