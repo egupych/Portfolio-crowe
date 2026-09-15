@@ -79,6 +79,8 @@ export const STRINGS = {
     'lightbox.next': 'Next',
 
     'scrollTop.aria': 'Back to top',
+    'fullscreen.enter': 'Enter fullscreen',
+    'fullscreen.exit': 'Exit fullscreen',
   },
 
   ru: {
@@ -150,6 +152,8 @@ export const STRINGS = {
     'lightbox.next': 'Следующий',
 
     'scrollTop.aria': 'Вернуться наверх',
+    'fullscreen.enter': 'На весь экран',
+    'fullscreen.exit': 'Свернуть',
   },
 };
 

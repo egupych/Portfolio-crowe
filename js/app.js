@@ -1227,6 +1227,45 @@ if (scrollTopBtn) {
   });
 }
 
+// ----- Fullscreen Toggle Button -----
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const fullscreenTooltip = document.getElementById('fullscreenTooltip');
+const iconExpand = fullscreenBtn?.querySelector('.icon-expand');
+const iconCompress = fullscreenBtn?.querySelector('.icon-compress');
+
+if (fullscreenBtn) {
+  const syncFullscreenState = () => {
+    const isFullscreen = !!document.fullscreenElement;
+    if (iconExpand && iconCompress) {
+      iconExpand.style.display = isFullscreen ? 'none' : 'block';
+      iconCompress.style.display = isFullscreen ? 'block' : 'none';
+    }
+    const key = isFullscreen ? 'fullscreen.exit' : 'fullscreen.enter';
+    const label = t(key);
+    fullscreenBtn.setAttribute('data-i18n-aria', key);
+    fullscreenBtn.setAttribute('data-i18n-title', key);
+    fullscreenBtn.setAttribute('aria-label', label);
+    fullscreenBtn.setAttribute('title', label);
+    if (fullscreenTooltip) {
+      fullscreenTooltip.setAttribute('data-i18n', key);
+      fullscreenTooltip.textContent = label;
+    }
+  };
+
+  document.addEventListener('fullscreenchange', syncFullscreenState);
+
+  fullscreenBtn.addEventListener('click', () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  });
+  
+  // Set initial string based on default language
+  syncFullscreenState();
+}
+
 // ----- Portfolio Side Navigation Buttons -----
 const portfolioSidePrev = document.getElementById('portfolioSidePrev');
 const portfolioSideNext = document.getElementById('portfolioSideNext');

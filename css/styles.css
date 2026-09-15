@@ -300,6 +300,53 @@ body {
   color: var(--color-btn-text);
 }
 
+/* ===== Fullscreen Toggle Button ===== */
+.fullscreen-btn {
+  position: fixed;
+  bottom: 5.5rem; /* right above scroll to top */
+  right: 2rem;
+  z-index: 90;
+  width: 2.875rem;
+  height: 2.875rem;
+  border-radius: 50%;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.fullscreen-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.fullscreen-btn__tooltip {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.fullscreen-btn:hover .fullscreen-btn__tooltip {
+  opacity: 1;
+}
+
 /* ===== Floating Scroll To Top Button ===== */
 .scroll-top-btn {
   position: fixed;
