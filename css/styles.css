@@ -303,7 +303,7 @@ body {
 /* ===== Fullscreen Toggle Button ===== */
 .fullscreen-btn {
   position: fixed;
-  bottom: 5.5rem; /* right above scroll to top */
+  bottom: 2rem;
   right: 2rem;
   z-index: 90;
   width: 2.875rem;
@@ -335,6 +335,7 @@ body {
   background: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
   color: var(--color-text);
+  font-family: var(--font);
   font-size: 0.8125rem;
   white-space: nowrap;
   opacity: 0;
@@ -350,7 +351,7 @@ body {
 /* ===== Floating Scroll To Top Button ===== */
 .scroll-top-btn {
   position: fixed;
-  bottom: 2rem;
+  bottom: 5.5rem; /* right above fullscreen */
   right: 2rem;
   z-index: 90;
   width: 2.875rem;
