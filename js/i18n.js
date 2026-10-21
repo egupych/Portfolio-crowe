@@ -37,7 +37,6 @@ export const STRINGS = {
     'search.placeholder': 'Search by name, role or CV content…',
     'search.aria': 'Search specialists',
     'search.clear': 'Clear search',
-    'search.suggestLabel': 'Popular:',
 
     'results.empty': 'Nothing matched your search',
     'results.reset': 'Reset filters',
@@ -134,7 +133,6 @@ export const STRINGS = {
     'search.placeholder': 'Поиск по имени, роли и резюме…',
     'search.aria': 'Поиск специалистов',
     'search.clear': 'Очистить поиск',
-    'search.suggestLabel': 'Часто ищут:',
 
     'results.empty': 'Ничего не найдено по вашему запросу',
     'results.reset': 'Сбросить фильтры',
@@ -231,7 +229,6 @@ export const STRINGS = {
     'search.placeholder': 'Ism, lavozim yoki rezyume bo‘yicha qidiruv…',
     'search.aria': 'Mutaxassislarni qidirish',
     'search.clear': 'Qidiruvni tozalash',
-    'search.suggestLabel': 'Tez-tez qidiriladi:',
 
     'results.empty': 'So‘rovingiz bo‘yicha hech narsa topilmadi',
     'results.reset': 'Filtrlarni bekor qilish',

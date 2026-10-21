@@ -17,7 +17,6 @@ const bookmarkCount = document.getElementById('bookmarkCount');
 const langSwitch = document.getElementById('langSwitch');
 const compareView = document.getElementById('compareView');
 const compareExportBtn = document.getElementById('compareExportBtn');
-const searchSuggestionsList = document.getElementById('searchSuggestionsList');
 
 /** Сотрудники на текущем языке — пересобирается при переключении языка */
 let people = getEmployees(getLang());
@@ -146,7 +145,11 @@ function applyStaticTranslations() {
   setMetaContent('name', 'twitter:description', t('meta.description'));
 
   document.querySelectorAll('[data-i18n]').forEach((el) => {
-    el.textContent = t(el.dataset.i18n);
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val && val !== key) {
+      el.textContent = val;
+    }
   });
   document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
     el.setAttribute('aria-label', t(el.dataset.i18nAria));
@@ -183,8 +186,7 @@ function applyLanguage(lang) {
   // Только обновить подпись темы; берём её со страницы — хранилище может быть недоступно
   applyTheme(document.documentElement.getAttribute('data-theme') || 'crowe-light');
 
-  // Перерисовываем подсказки поиска и всё, что построено из данных
-  renderSearchSuggestions();
+  // Перерисовываем всё, что построено из данных
   applyFilters();
   if (currentView === compareView) renderComparison();
   if (currentView === portfolioView && currentEmployeeId) {
@@ -1362,58 +1364,12 @@ function applyFilters() {
   updateCompareButton();
 }
 
-const SUGGESTIONS_BY_LANG = {
-  ru: ['Аудит', 'ACCA', 'Due Diligence', 'МСФО', 'Налоги', 'Консалтинг'],
-  en: ['Audit', 'ACCA', 'Due Diligence', 'IFRS', 'Tax', 'Consulting'],
-  uz: ['Audit', 'ACCA', 'Due Diligence', 'MHXS', 'Soliqlar', 'Konsalting'],
-};
-
-function renderSearchSuggestions() {
-  if (!searchSuggestionsList) return;
-  searchSuggestionsList.innerHTML = '';
-  const lang = getLang();
-  const list = SUGGESTIONS_BY_LANG[lang] || SUGGESTIONS_BY_LANG.en;
-  const currentQueryNorm = normalizeSearch(searchQuery);
-
-  list.forEach((suggestion) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'search-suggestion';
-    const isSelected = currentQueryNorm === normalizeSearch(suggestion);
-    if (isSelected) btn.classList.add('search-suggestion--active');
-    btn.textContent = suggestion;
-
-    btn.addEventListener('click', () => {
-      if (isSelected) {
-        searchQuery = '';
-        if (searchInput) {
-          searchInput.value = '';
-          searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
-        }
-        if (searchClearBtn) searchClearBtn.hidden = true;
-      } else {
-        searchQuery = suggestion;
-        if (searchInput) {
-          searchInput.value = suggestion;
-          searchInput.closest('.search-box')?.classList.add('search-box--has-value');
-        }
-        if (searchClearBtn) searchClearBtn.hidden = false;
-      }
-      applyFilters();
-      renderSearchSuggestions();
-    });
-
-    searchSuggestionsList.appendChild(btn);
-  });
-}
-
 if (searchInput) {
   searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value;
     if (searchClearBtn) searchClearBtn.hidden = !searchQuery;
     searchInput.closest('.search-box')?.classList.toggle('search-box--has-value', Boolean(searchQuery));
     applyFilters();
-    renderSearchSuggestions();
   });
 }
 
@@ -1424,7 +1380,6 @@ if (searchClearBtn) {
     searchClearBtn.hidden = true;
     searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
     applyFilters();
-    renderSearchSuggestions();
     searchInput.focus();
   });
 }
@@ -1441,7 +1396,6 @@ if (resetFiltersBtn) {
     if (searchClearBtn) searchClearBtn.hidden = true;
     renderFilterChips();
     applyFilters();
-    renderSearchSuggestions();
   });
 }
 
@@ -1781,7 +1735,6 @@ document.addEventListener('keydown', (e) => {
       }
       if (searchClearBtn) searchClearBtn.hidden = true;
       applyFilters();
-      renderSearchSuggestions();
     }
   }
 });
@@ -1929,7 +1882,6 @@ if (portfolioSideNext) {
 
 applyStaticTranslations();
 updateLangSwitchUI();
-renderSearchSuggestions();
 renderFilterChips();
 renderCards();
 initFromUrl();

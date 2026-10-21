@@ -954,69 +954,6 @@ body {
   align-items: center;
 }
 
-/* ===== Quick Search Suggestions ===== */
-.search-suggestions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem 0.5rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.85rem;
-  font-size: var(--tag-size);
-}
-
-.search-suggestions__label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 0.15rem;
-}
-
-.search-suggestions__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.45rem;
-  align-items: center;
-}
-
-.search-suggestion {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.65rem;
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-tag-border);
-  border-radius: var(--radius-tag);
-  color: var(--color-text);
-  font-family: var(--font);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.2;
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.85;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
-}
-
-.search-suggestion:hover {
-  opacity: 1;
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  transform: translateY(-1px);
-}
-
-.search-suggestion--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-btn-text);
-  opacity: 1;
-}
-
-.search-suggestion:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 
 /* Чип фильтра — одна пилюля, счётчик внутри неё в обведённом кружке.
    Активное состояние залито, неактивное — контуром. */
@@ -1713,20 +1650,18 @@ body {
 }
 
 .employee-card {
-  background: var(--color-card-bg);
+  background: transparent;
   border-radius: 1rem;
-  padding: 2rem;
-  /* 28px 24px 24px */
+  padding: 1.5rem 1rem;
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  border: 1px solid var(--color-card-border);
+  border: 1px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 0.3rem;
-  /* 8px */
   transition:
     transform var(--transition),
     border-color var(--transition),
@@ -1736,15 +1671,12 @@ body {
 
 @media (hover: hover) {
   .employee-card:hover {
-    transform: translateY(-0.5rem) scale(1.02);
-    /* -8px */
-    border-color: var(--color-card-hover-border);
+    transform: translateY(-0.35rem);
   }
 }
 
 .employee-card:active {
-  transform: translateY(-0.25rem) scale(1.01);
-  /* -4px */
+  transform: translateY(-0.15rem);
 }
 
 .employee-card__photo-wrap {
@@ -1766,9 +1698,9 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border: 1px solid var(--color-card-border);
-  border-radius: 100%;
-  transition: border-color var(--transition);
+  border: none;
+  border-radius: 50%;
+  transition: transform var(--transition);
 }
 
 .employee-card__name {

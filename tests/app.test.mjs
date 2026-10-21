@@ -157,25 +157,6 @@ describe('поиск', () => {
     await search('дилигинс');
     assert.ok(names().some((n) => n.includes('Bell')));
   });
-
-  test('быстрые подсказки-теги фильтруют выдачу при клике', async () => {
-    const suggestions = $$('.search-suggestion');
-    assert.ok(suggestions.length > 0, 'подсказки отрендерены');
-
-    const firstChip = suggestions[0];
-    const chipText = firstChip.textContent.trim();
-    await click(firstChip);
-
-    assert.equal($('#searchInput').value, chipText);
-    const activeChip = $('.search-suggestion--active');
-    assert.ok(activeChip, 'активный чип подсказки выделен');
-    assert.equal(activeChip.textContent.trim(), chipText);
-
-    // Повторный клик снимает выбор
-    await click(activeChip);
-    assert.equal($('#searchInput').value, '');
-    assert.equal($('.search-suggestion--active'), null);
-  });
 });
 
 describe('фильтр и возврат из профиля', () => {

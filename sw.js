@@ -3,7 +3,7 @@
  * Provides offline caching (PWA) and instant loads.
  */
 
-const CACHE_NAME = 'crowe-portfolio-v1';
+const CACHE_NAME = 'crowe-portfolio-v3';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -105,10 +105,14 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    // Static code assets (JS, CSS): Stale-While-Revalidate
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request)
+    // Static code assets (JS, CSS): Network-first with cache fallback
+    // Ensures updates are applied immediately when online, while preserving 100% offline support
+    if (
+      url.pathname.endsWith('.js') ||
+      url.pathname.endsWith('.css')
+    ) {
+      event.respondWith(
+        fetch(request)
           .then((networkResponse) => {
             if (networkResponse.ok) {
               const clone = networkResponse.clone();
@@ -116,12 +120,10 @@ self.addEventListener('fetch', (event) => {
             }
             return networkResponse;
           })
-          .catch(() => cached);
-
-        return cached || fetchPromise;
-      }),
-    );
-    return;
+          .catch(() => caches.match(request)),
+      );
+      return;
+    }
   }
 
   // Third-party CDN assets (Google Fonts): Stale-While-Revalidate
