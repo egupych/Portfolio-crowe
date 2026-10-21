@@ -421,7 +421,7 @@ function renderSection(section, delayIndex) {
 }
 
 function renderCertificates(employeeId, options = {}) {
-  const certs = getCertificates(employeeId);
+  const certs = getCertificates(employeeId, getLang());
   if (!certs.length) return null;
 
   const block = document.createElement('div');
@@ -448,10 +448,11 @@ function renderCertificates(employeeId, options = {}) {
     card.className = 'cert-card';
     card.role = 'button';
     card.tabIndex = 0;
-    card.setAttribute('aria-label', t('certs.alt', { n: i + 1 }));
+    card.setAttribute('aria-label', cert.title || t('certs.alt', { n: i + 1 }));
+    card.title = cert.title || '';
     card.style.animationDelay = `${0.5 + i * 0.07}s`;
     card.innerHTML = `
-      <img class="cert-card__img" src="${cert.thumb}" alt="${t('certs.alt', { n: i + 1 })}" loading="lazy">
+      <img class="cert-card__img" src="${cert.thumb}" alt="${cert.title || t('certs.alt', { n: i + 1 })}" loading="lazy">
       <div class="cert-card__overlay">
         <span class="cert-card__zoom">${t('certs.zoom')}</span>
       </div>
@@ -665,7 +666,7 @@ async function printCertificate(item, cert, displayName, index) {
 
   document.body.dataset.print = 'certificate';
   item.classList.add('cert-item--printing');
-  document.title = t('certs.fileName', { name: displayName, n: index + 1 });
+  document.title = cert.title ? `${displayName} — ${cert.title}` : t('certs.fileName', { name: displayName, n: index + 1 });
 
   const cleanup = () => {
     document.body.removeAttribute('data-print');
@@ -743,7 +744,7 @@ function comparisonRows(list) {
     { label: t('compare.office'), kind: 'text', values: list.map((e) => (e.office ? [e.office] : [])) },
     { label: t('compare.languages'), kind: 'flags', values: list.map((e) => e.languages) },
     { label: t('compare.tags'), kind: 'tags', values: list.map((e) => e.tags) },
-    { label: t('compare.certificates'), kind: 'certs', values: list.map((e) => getCertificates(e.id)) },
+    { label: t('compare.certificates'), kind: 'certs', values: list.map((e) => getCertificates(e.id, getLang())) },
   ];
 
   const frequency = new Map();
@@ -817,10 +818,11 @@ function renderCompareCell(row, index) {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'compare__cert';
-      button.setAttribute('aria-label', t('certs.alt', { n: i + 1 }));
+      button.setAttribute('aria-label', cert.title || t('certs.alt', { n: i + 1 }));
+      button.title = cert.title || '';
       const img = document.createElement('img');
       img.src = cert.thumb;
-      img.alt = '';
+      img.alt = cert.title || '';
       img.loading = 'lazy';
       button.appendChild(img);
       button.addEventListener('click', () => openLightbox(value, i, button));
@@ -1044,18 +1046,19 @@ function printTeamDeck() {
   matrixSlide.className = 'deck-page deck-matrix';
 
   const rowsHtml = list.map((emp) => {
-    const certs = getCertificates(emp.id);
-    const certsList = certs.length
-      ? certs.map((c, i) => `${t('certs.alt', { n: i + 1 })}`).join(', ')
+    const certs = getCertificates(emp.id, getLang());
+    const certContent = certs.length
+      ? `<div class="deck-matrix__cert-count">${getPlural(certs.length, 'certificates')}</div>` +
+        `<ul class="deck-matrix__cert-list">${certs.map((c) => `<li>${c.title}</li>`).join('')}</ul>`
       : '—';
     const langs = (emp.languages || []).map((l) => l.toUpperCase()).join(', ');
     return `
       <tr>
-        <td style="font-weight: 600; color: #011E41;">${emp.name}</td>
+        <td style="font-weight: 600; color: #011E41; white-space: nowrap;">${emp.name}</td>
         <td>${emp.role}</td>
         <td>${emp.office || 'Tashkent'}</td>
-        <td>${langs}</td>
-        <td>${certs.length ? `<strong>${getPlural(certs.length, 'certificates')}</strong> (${certsList})` : '—'}</td>
+        <td style="white-space: nowrap;">${langs}</td>
+        <td>${certContent}</td>
       </tr>
     `;
   }).join('');

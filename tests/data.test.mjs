@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { CERTS, employees, getCertificates, getEmployees, getFlag, levenshteinDistance, matchSearchTerm, normalizeSearch } from '../js/data.js';
+import { CERTS, CERT_DETAILS, employees, getCertificates, getEmployees, getFlag, levenshteinDistance, matchSearchTerm, normalizeSearch } from '../js/data.js';
 import { employeesEn } from '../js/data.en.js';
 import { employeesUz } from '../js/data.uz.js';
 import { generateQrSvg } from '../js/qr.js';
@@ -85,14 +85,26 @@ test('индекс склеен переносами: соседние пунк�
   }
 });
 
-test('сертификаты находятся по id и отдают превью с полным размером', () => {
-  const certs = getCertificates('vera-bell');
+test('сертификаты находятся по id и отдают превью с полным размером и названием', () => {
+  const certs = getCertificates('vera-bell', 'ru');
   assert.equal(certs.length, CERTS['vera-bell'].length);
   for (const cert of certs) {
     assert.match(cert.thumb, /^\/certificates\/thumb\/[a-z0-9-]+\.webp$/);
     assert.match(cert.full, /^\/certificates\/webp\/[a-z0-9-]+\.webp$/);
+    assert.ok(cert.title && cert.title.length > 3, `Название сертификата ${cert.file} должно быть заполнено`);
   }
   assert.deepEqual(getCertificates('нет-такого'), []);
+});
+
+test('каждый сертификат в CERTS имеет подробное описание на трёх языках', () => {
+  for (const [empId, files] of Object.entries(CERTS)) {
+    for (const file of files) {
+      assert.ok(CERT_DETAILS[file], `Сертификат ${file} (сотрудник ${empId}) должен присутствовать в CERT_DETAILS`);
+      assert.ok(CERT_DETAILS[file].ru, `У сертификата ${file} должно быть название на русском`);
+      assert.ok(CERT_DETAILS[file].en, `У сертификата ${file} должно быть название на английском`);
+      assert.ok(CERT_DETAILS[file].uz, `У сертификата ${file} должно быть название на узбекском`);
+    }
+  }
 });
 
 test('пути к картинкам — латиница без пробелов', () => {

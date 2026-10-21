@@ -2994,6 +2994,7 @@ body {
   .deck-matrix__table td {
     padding: 0.65rem 0.85rem;
     text-align: left;
+    vertical-align: top;
     border-bottom: 1px solid rgba(1, 30, 65, 0.15);
   }
 
@@ -3005,6 +3006,25 @@ body {
 
   .deck-matrix__table tr:nth-child(even) td {
     background: #F9FAFB;
+  }
+
+  .deck-matrix__cert-count {
+    font-weight: 700;
+    color: #011E41;
+    margin-bottom: 0.25rem;
+    font-size: 0.82rem;
+  }
+
+  .deck-matrix__cert-list {
+    margin: 0;
+    padding-left: 1.15rem;
+    font-size: 0.78rem;
+    color: #1e293b;
+    line-height: 1.35;
+  }
+
+  .deck-matrix__cert-list li {
+    margin-bottom: 0.25rem;
   }
 
   .deck-footer {

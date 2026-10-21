@@ -15,6 +15,149 @@ const FLAGS = {
  * собирает scripts/optimize-images.py, целостность проверяет
  * scripts/check-assets.mjs.
  */
+export const CERT_DETAILS = {
+  'vera-bell-1': {
+    ru: 'Квалификационный сертификат аудитора (МФ РУз)',
+    en: 'Auditor Qualification Certificate (MoF RUz)',
+    uz: "Auditorning malaka sertifikati (O'zR MV)",
+  },
+  'vera-bell-2': {
+    ru: 'Executive MBA (Cass Business School, London)',
+    en: 'Executive MBA (Cass Business School, London)',
+    uz: 'Executive MBA (Cass Business School, London)',
+  },
+  'vera-bell-3': {
+    ru: 'Сертификат «Корпоративный директор» (CGPA)',
+    en: 'Corporate Director Certificate (CGPA)',
+    uz: '«Korporativ direktor» sertifikati (CGPA)',
+  },
+  'tatyana-shukst-1': {
+    ru: 'ACCA Fellow (FCCA)',
+    en: 'ACCA Fellow (FCCA)',
+    uz: 'ACCA Fellow (FCCA)',
+  },
+  'ekaterina-ganova-1': {
+    ru: 'ACCA Fellow (FCCA)',
+    en: 'ACCA Fellow (FCCA)',
+    uz: 'ACCA Fellow (FCCA)',
+  },
+  'ekaterina-ganova-2': {
+    ru: 'ACCA Member',
+    en: 'ACCA Member',
+    uz: 'ACCA aʼzosi (ACCA Member)',
+  },
+  'dilnoza-zaripova-3': {
+    ru: 'ACCA Member',
+    en: 'ACCA Member',
+    uz: 'ACCA aʼzosi (ACCA Member)',
+  },
+  'sokhiba-khodjaeva-1': {
+    ru: 'Сертификат внутреннего аудитора (Палата аудиторов РУз)',
+    en: 'Internal Auditor Certificate (Chamber of Auditors of Uzbekistan)',
+    uz: "Ichki auditor sertifikati (O'zbekiston Auditorlar Palatasi)",
+  },
+  'sokhiba-khodjaeva-2': {
+    ru: 'Квалификационный сертификат аудитора (БАИМ)',
+    en: 'Auditor Qualification Certificate (BAIM)',
+    uz: 'Auditorning malaka sertifikati (BAIM)',
+  },
+  'sokhiba-khodjaeva-3': {
+    ru: 'ACCA DipIFR (Диплом по МСФО)',
+    en: 'ACCA DipIFR (Diploma in IFRS)',
+    uz: 'ACCA DipIFR (MHXS diplomi)',
+  },
+  'parvina-khidoyatova-1': {
+    ru: 'ACCA DipIFR (Диплом по МСФО)',
+    en: 'ACCA DipIFR (Diploma in IFRS)',
+    uz: 'ACCA DipIFR (MHXS diplomi)',
+  },
+  'parvina-khidoyatova-2': {
+    ru: 'Квалификационный сертификат аудитора (БАИМ)',
+    en: 'Auditor Qualification Certificate (BAIM)',
+    uz: 'Auditorning malaka sertifikati (BAIM)',
+  },
+  'validzhon-tursunov-1': {
+    ru: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+    en: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+    uz: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+  },
+  'bekzod-abbosov-1': {
+    ru: 'ACCA Advanced Diploma in Accounting and Business',
+    en: 'ACCA Advanced Diploma in Accounting and Business',
+    uz: 'ACCA Advanced Diploma in Accounting and Business',
+  },
+  'sherzodbek-abdukhalimov-1': {
+    ru: 'ACCA Advanced Diploma in Accounting and Business',
+    en: 'ACCA Advanced Diploma in Accounting and Business',
+    uz: 'ACCA Advanced Diploma in Accounting and Business',
+  },
+  'sherzodbek-abdukhalimov-2': {
+    ru: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+    en: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+    uz: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+  },
+  'sherzodbek-abdukhalimov-3': {
+    ru: 'ACCA Ethics and Professional Skills',
+    en: 'ACCA Ethics and Professional Skills',
+    uz: 'ACCA Ethics and Professional Skills',
+  },
+  'sherzodbek-abdukhalimov-4': {
+    ru: 'CFI Financial Modeling & Valuation Analyst (FMVA®)',
+    en: 'CFI Financial Modeling & Valuation Analyst (FMVA®)',
+    uz: 'CFI Financial Modeling & Valuation Analyst (FMVA®)',
+  },
+  'mirfozil-mirolimov-1': {
+    ru: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+    en: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+    uz: 'ACCA Diploma in Accounting and Business (RQF Level 4)',
+  },
+  'akmalhon-buzurkhanov-1': {
+    ru: 'ACCA Management Accounting (MA)',
+    en: 'ACCA Management Accounting (MA)',
+    uz: 'ACCA Management Accounting (MA)',
+  },
+  'akmalhon-buzurkhanov-2': {
+    ru: 'ACCA Financial Accounting (FA)',
+    en: 'ACCA Financial Accounting (FA)',
+    uz: 'ACCA Financial Accounting (FA)',
+  },
+  'akmalhon-buzurkhanov-3': {
+    ru: 'ACCA Qualification (BT, MA, FA, PM, FR, FM)',
+    en: 'ACCA Qualification (BT, MA, FA, PM, FR, FM)',
+    uz: 'ACCA Qualification (BT, MA, FA, PM, FR, FM)',
+  },
+  'tatyana-samoylova-1': {
+    ru: 'Квалификационный сертификат аудитора (БАИМ)',
+    en: 'Auditor Qualification Certificate (BAIM)',
+    uz: 'Auditorning malaka sertifikati (BAIM)',
+  },
+  'tatyana-samoylova-2': {
+    ru: 'Сертификат ПОД/ФТ (Академия Генеральной прокуратуры РУз)',
+    en: 'AML/CFT Certificate (Prosecutor General’s Academy of RUz)',
+    uz: "AML/CFT sertifikati (O'zR Bosh Prokuraturasi Akademiyasi)",
+  },
+  'tatyana-samoylova-3': {
+    ru: 'CIPA — Сертифицированный практик-бухгалтер (CAP)',
+    en: 'CIPA — Certified Accounting Practitioner (CAP)',
+    uz: 'CIPA — Xalqaro amaliyotchi buxgalter (CAP)',
+  },
+  'tatyana-samoylova-4': {
+    ru: 'Квалификационный сертификат налогового консультанта (Палата НК РУз)',
+    en: 'Tax Consultant Qualification Certificate (Chamber of Tax Consultants)',
+    uz: 'Soliq maslahatchisining malaka sertifikati',
+  },
+  'islomzhon-kazikhodzhaev-1': {
+    ru: 'Диплом бакалавра (Информационные системы и технологии)',
+    en: 'Bachelor Degree (Information Systems and Technologies)',
+    uz: 'Bakalavr diplomi (Axborot tizimlari va texnologiyalari)',
+  },
+  'islomzhon-kazikhodzhaev-2': {
+    ru: 'Диплом бакалавра (приложение / подтверждение)',
+    en: 'Bachelor Degree (Academic confirmation)',
+    uz: 'Bakalavr diplomi (ilova / tasdiq)',
+  },
+};
+
 export const CERTS = {
   'vera-bell': ['vera-bell-1', 'vera-bell-2', 'vera-bell-3'],
   'tatyana-shukst': ['tatyana-shukst-1'],
@@ -845,11 +988,17 @@ export const employees = [
  * Сертификаты сотрудника: лёгкое превью для сетки и полноразмерная
  * картинка — она нужна только в лайтбоксе и при печати.
  */
-export function getCertificates(id) {
-  return (CERTS[id] || []).map((file) => ({
-    thumb: `/certificates/thumb/${file}.webp`,
-    full: `/certificates/webp/${file}.webp`,
-  }));
+export function getCertificates(id, lang = 'ru') {
+  return (CERTS[id] || []).map((file) => {
+    const detail = CERT_DETAILS[file];
+    const title = (detail && (detail[lang] || detail.ru || detail.en)) || file;
+    return {
+      file,
+      thumb: `/certificates/thumb/${file}.webp`,
+      full: `/certificates/webp/${file}.webp`,
+      title,
+    };
+  });
 }
 
 export function getFlag(code) {
