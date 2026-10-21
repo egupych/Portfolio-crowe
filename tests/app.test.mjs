@@ -445,7 +445,18 @@ describe('сравнение', () => {
     const deck = $('#teamDeckPrint');
     assert.ok(deck.querySelector('.deck-cover'), 'титульный лист');
     assert.equal(deck.querySelectorAll('.deck-member').length, 3, 'карточка каждого выбранного специалиста');
-    assert.ok(deck.querySelector('.deck-matrix'), 'матрица сертификатов');
+    const matrix = deck.querySelector('.deck-matrix');
+    assert.ok(matrix, 'матрица сертификатов');
+    assert.ok(
+      matrix.textContent.includes('Auditor Qualification Certificate') ||
+        matrix.textContent.includes('Квалификационный сертификат аудитора'),
+      'должно содержать реальные квалификации',
+    );
+    assert.ok(matrix.textContent.includes('ACCA Fellow (FCCA)'), 'должно содержать ACCA Fellow');
+    assert.ok(
+      !matrix.textContent.includes('Certificate 1') && !matrix.textContent.includes('Сертификат 1'),
+      'не должно содержать бесполезную заглушку номера',
+    );
   });
 });
 
