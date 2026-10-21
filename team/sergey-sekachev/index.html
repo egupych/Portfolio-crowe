@@ -10,24 +10,26 @@
   <meta property="og:site_name" content="Crowe Uzbekistan">
   <meta property="og:title" content="Sergey Sekachev — Valuation Expert / Actuary | Crowe Uzbekistan">
   <meta property="og:description" content="Sergey Sekachev, Valuation Expert / Actuary at Crowe Uzbekistan. CV, expertise and certificates.">
-  <meta property="og:image" content="https://portfoliocrowe.vercel.app/og-image.jpg">
+  <meta property="og:image" content="https://portfoliocrowe.vercel.app/photos/placeholder.svg">
   <meta property="og:url" content="https://portfoliocrowe.vercel.app/team/sergey-sekachev">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Sergey Sekachev — Valuation Expert / Actuary | Crowe Uzbekistan">
   <meta name="twitter:description" content="Sergey Sekachev, Valuation Expert / Actuary at Crowe Uzbekistan. CV, expertise and certificates.">
-  <meta name="twitter:image" content="https://portfoliocrowe.vercel.app/og-image.jpg">
+  <meta name="twitter:image" content="https://portfoliocrowe.vercel.app/photos/placeholder.svg">
 
   <link rel="canonical" href="https://portfoliocrowe.vercel.app/team/sergey-sekachev">
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#011E41">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.css?v=7">
 </head>
 <body>
   <div class="page-bg" aria-hidden="true"></div>
@@ -47,6 +49,7 @@
       <div class="lang-switch" id="langSwitch" role="group" data-i18n-aria="header.langAria" aria-label="Switch language" data-i18n-title="header.langTitle" title="Switch language">
         <button class="lang-switch__btn lang-switch__btn--active" type="button" data-lang="en" aria-pressed="true">EN</button>
         <button class="lang-switch__btn" type="button" data-lang="ru" aria-pressed="false">RU</button>
+        <button class="lang-switch__btn" type="button" data-lang="uz" aria-pressed="false">UZ</button>
       </div>
       <button class="theme-toggle-btn" id="themeToggleBtn" type="button" data-i18n-aria="header.themeAria" aria-label="Switch theme" data-i18n-title="header.themeTitle" title="Change theme">
         <span class="theme-toggle-btn__dot"></span>
@@ -79,6 +82,7 @@
             <path d="M14 14L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <input type="text" id="searchInput" class="search-box__input" data-i18n-placeholder="search.placeholder" placeholder="Search by name, role or CV content…" data-i18n-aria="search.aria" aria-label="Search specialists">
+          <kbd class="search-box__kbd" id="searchKbd" aria-hidden="true" title="Press / to search">/</kbd>
           <button type="button" id="searchClearBtn" class="search-box__clear" data-i18n-aria="search.clear" aria-label="Clear search" hidden>&times;</button>
         </div>
         <div class="filter-chips" id="filterChips"></div>
@@ -169,6 +173,38 @@
     </svg>
   </button>
 
-  <script type="module" src="/js/app.js"></script>
+  <!-- Floating Toast Notification -->
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <svg class="toast__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+    <span class="toast__text" id="toastText"></span>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div class="qr-modal" id="qrModal" role="dialog" aria-modal="true" data-i18n-aria="portfolio.qr" aria-label="QR code" hidden>
+    <div class="qr-modal__backdrop" id="qrModalBackdrop"></div>
+    <div class="qr-modal__card">
+      <button class="qr-modal__close" id="qrModalClose" type="button" data-i18n-aria="portfolio.qrClose" aria-label="Close">&times;</button>
+      <div class="qr-modal__header">
+        <span class="qr-modal__badge">Crowe</span>
+        <h3 class="qr-modal__title" id="qrModalName"></h3>
+        <p class="qr-modal__role" id="qrModalRole"></p>
+      </div>
+      <div class="qr-modal__code-wrap" id="qrModalCodeWrap"></div>
+      <p class="qr-modal__hint" data-i18n="portfolio.qrHint">Scan with phone camera to view profile</p>
+      <div class="qr-modal__actions">
+        <button class="qr-modal__btn qr-modal__btn--copy" id="qrModalCopyBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span data-i18n="portfolio.qrCopyLink">Copy link</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js?v=8"></script>
 </body>
 </html>

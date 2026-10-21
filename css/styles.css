@@ -291,7 +291,10 @@ body {
 
 .portfolio__download-btn,
 .portfolio__contact-btn,
-.portfolio__bookmark-btn {
+.portfolio__bookmark-btn,
+.portfolio__share-btn,
+.portfolio__qr-btn,
+.portfolio__vcard-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -305,19 +308,242 @@ body {
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
 .portfolio__download-btn:hover,
 .portfolio__contact-btn:hover,
-.portfolio__bookmark-btn:hover {
+.portfolio__bookmark-btn:hover,
+.portfolio__share-btn:hover,
+.portfolio__qr-btn:hover,
+.portfolio__vcard-btn:hover {
   background: var(--color-accent);
   color: var(--color-btn-text);
+}
+
+.portfolio__download-btn:focus-visible,
+.portfolio__contact-btn:focus-visible,
+.portfolio__bookmark-btn:focus-visible,
+.portfolio__share-btn:focus-visible,
+.portfolio__qr-btn:focus-visible,
+.portfolio__vcard-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .portfolio__bookmark-btn--active {
   background: var(--color-accent);
   color: var(--color-btn-text);
+}
+
+/* ===== Toast Notification ===== */
+.toast {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(1rem);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--color-accent);
+  color: var(--color-btn-text);
+  padding: 0.85rem 1.75rem;
+  border-radius: var(--radius-tag);
+  font-family: var(--font);
+  font-size: var(--tag-size);
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(1, 30, 65, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.toast__icon {
+  flex-shrink: 0;
+  color: var(--color-brand-yellow);
+}
+
+.toast__text {
+  white-space: nowrap;
+}
+
+/* ===== QR Code Modal ===== */
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.qr-modal[hidden] {
+  display: none;
+}
+
+.qr-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(1, 30, 65, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.qr-modal__card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 24rem;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 1.5rem;
+  padding: 2.25rem 2rem 2rem;
+  box-shadow: 0 20px 40px rgba(1, 30, 65, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: zoomIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.qr-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font-size: 1.75rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  padding: 0.25rem 0.5rem;
+  border-radius: 50%;
+  font-family: var(--font);
+}
+
+.qr-modal__close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.qr-modal__close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.qr-modal__header {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.qr-modal__badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-brand-yellow);
+  background: var(--color-accent);
+  padding: 0.2rem 0.7rem;
+  border-radius: var(--radius-tag);
+  margin-bottom: 0.25rem;
+}
+
+.qr-modal__title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.qr-modal__role {
+  font-size: var(--tag-size);
+  color: var(--color-text);
+  opacity: 0.75;
+  margin: 0;
+}
+
+.qr-modal__code-wrap {
+  width: 13rem;
+  height: 13rem;
+  background: #FFFFFF;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.qr-modal__code-wrap svg {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+}
+
+.qr-modal__hint {
+  font-size: var(--tag-size);
+  color: var(--color-text);
+  opacity: 0.7;
+  line-height: 1.4;
+  margin: 0 0 1.25rem;
+  max-width: 18rem;
+}
+
+.qr-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.qr-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-tag);
+  color: var(--color-accent);
+  font-family: var(--font);
+  font-size: var(--tag-size);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.qr-modal__btn:hover {
+  background: var(--color-accent);
+  color: var(--color-btn-text);
+}
+
+.qr-modal__btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 /* ===== Fullscreen Toggle Button ===== */
@@ -607,6 +833,8 @@ body {
 
 /* ===== Search & Filter ===== */
 .search-filter {
+  position: relative;
+  z-index: 20;
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
@@ -684,6 +912,41 @@ body {
   opacity: 1;
 }
 
+.search-box__kbd {
+  position: absolute;
+  right: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity var(--transition-fast);
+}
+
+.search-box__input:focus ~ .search-box__kbd,
+.search-box--has-value .search-box__kbd {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@media (pointer: coarse) {
+  .search-box__kbd {
+    display: none;
+  }
+}
+
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -692,16 +955,9 @@ body {
 }
 
 /* Чип фильтра — одна пилюля, счётчик внутри неё в обведённом кружке.
-   Цвет задают варианты через переменные. */
+   Активное состояние залито, неактивное — контуром. */
 .filter-chip {
   --chip-h: 1.5rem;
-  /* 29px — внешняя высота чипа. Кружок ровно такой же и вытянут наружу
-     отрицательными полями, чтобы его обводка легла на рамку пилюли:
-     иначе на торце видно две линии подряд. */
-  --chip-bg: var(--color-tag-bg);
-  --chip-border: var(--color-tag-border);
-  --chip-fg: var(--color-text);
-
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
@@ -709,12 +965,12 @@ body {
   font-family: var(--font);
   font-size: var(--tag-size);
   font-weight: 500;
-  background: var(--chip-bg);
-  border: 1px solid var(--chip-border);
+  background: transparent;
+  border: 1px solid var(--color-tag-border);
   border-radius: var(--radius-tag);
-  color: var(--chip-fg);
+  color: var(--color-text);
   cursor: pointer;
-  opacity: 0.85;
+  opacity: 0.9;
   user-select: none;
   transition: opacity var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
@@ -740,71 +996,64 @@ body {
   height: var(--chip-h);
   margin: 5px;
   border-radius: 50%;
-  /* Обводка кружка — приглушённый текущий цвет: сама подстраивается
-     и под белые чипы, и под залитые */
-  border: 1px solid var(--chip-border);
-  border-color: color-mix(in srgb, currentColor 35%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  color: inherit;
+  background: transparent;
 }
 
-.filter-chip:hover {
+/* Наведение на неактивный чип — остаётся контуром, подсвечивается акцентом */
+.filter-chip:hover:not(.filter-chip--active):not(:disabled) {
   opacity: 1;
+  background: transparent;
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
 
-.filter-chip--active {
-  --chip-bg: var(--color-accent);
-  --chip-border: var(--color-accent);
-  --chip-fg: var(--color-btn-text);
-  opacity: 1;
+/* Активное состояние — полностью залито, контрастный текст, не исчезает при наведении */
+.filter-chip--active,
+.filter-chip--active:hover,
+.filter-chip--all.filter-chip--active,
+.filter-chip--all.filter-chip--active:hover,
+.filter-chip--office.filter-chip--active,
+.filter-chip--office.filter-chip--active:hover,
+.filter-chip--bookmarks.filter-chip--active,
+.filter-chip--bookmarks.filter-chip--active:hover,
+.filter-chip--role.filter-chip--active,
+.filter-chip--role.filter-chip--active:hover {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-btn-text) !important;
+  opacity: 1 !important;
 }
 
-.filter-chip--active:hover {
-  color: var(--chip-fg);
+.filter-chip--active .filter-chip__count,
+.filter-chip--active:hover .filter-chip__count {
+  border-color: color-mix(in srgb, var(--color-btn-text) 45%, transparent);
+  color: var(--color-btn-text) !important;
+}
+
+.filter-chip--active svg,
+.filter-chip--active:hover svg {
+  stroke: var(--color-btn-text) !important;
+  color: var(--color-btn-text) !important;
 }
 
 .filter-chip:disabled,
 .filter-chip--disabled {
-  --chip-bg: var(--color-card-bg) !important;
-  --chip-border: var(--color-tag-border) !important;
-  --chip-fg: var(--color-text) !important;
+  background: transparent !important;
+  border-color: var(--color-tag-border) !important;
+  color: var(--color-text) !important;
   opacity: 0.45 !important;
   cursor: not-allowed !important;
   pointer-events: none;
 }
 
-/* Акцентные чипы: «Все» — фирменный чёрный, офис и закладки — фирменный жёлтый.
-   При наведении они не перекрашиваются, только приподнимаются. */
-.filter-chip--all,
-.filter-chip--all:hover {
-  --chip-bg: var(--color-chip-all);
-  --chip-border: var(--color-chip-all);
-  --chip-fg: var(--color-white);
-  opacity: 1;
-  border-color: var(--chip-border);
-  color: var(--chip-fg);
-}
-
-.filter-chip--office,
-.filter-chip--office:hover,
-.filter-chip--bookmarks,
-.filter-chip--bookmarks:hover {
-  --chip-bg: var(--color-chip-bookmarks);
-  --chip-border: var(--color-chip-bookmarks);
-  --chip-fg: var(--color-white);
-  opacity: 1;
-  border-color: var(--chip-border);
-  color: var(--chip-fg);
-}
-
-/* Чип закладок — иконка + текст + счётчик в фирменных цветах */
-.filter-chip--bookmarks {
-}
-
+/* Чип закладок — иконка + текст + счётчик */
 .filter-chip--bookmarks .filter-chip__label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.35rem;
 }
 
 .filter-chip--bookmarks svg {
@@ -813,21 +1062,196 @@ body {
   height: 0.875rem;
 }
 
-
-/* Активное состояние акцентных — кольцо с зазором: на залитом фоне иначе не видно.
-   Именно outline, а не тень: тени на сайте не используются. */
-.filter-chip--all.filter-chip--active,
-.filter-chip--office.filter-chip--active,
-.filter-chip--bookmarks.filter-chip--active {
-  outline: 1px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
 .filter-chip--bookmarks:disabled,
 .filter-chip--bookmarks.filter-chip--disabled {
-  --chip-bg: var(--color-chip-bookmarks) !important;
-  --chip-border: var(--color-chip-bookmarks) !important;
-  --chip-fg: var(--color-white) !important;
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+/* ===== Выпадающее меню должностей (на мобильных устройствах и планшетах) ===== */
+.role-menu {
+  display: none;
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  /* На экранах планшетов и телефонов скрываем россыпь должностей и показываем кнопку-меню */
+  .filter-chip--role {
+    display: none !important;
+  }
+
+  .role-menu {
+    display: inline-flex;
+  }
+}
+
+.role-menu__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 2.125rem;
+  padding: 0 0.85rem;
+  background: transparent;
+  border: 1px solid var(--color-tag-border);
+  border-radius: var(--radius-tag);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: var(--tag-size);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.9;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.role-menu__toggle:hover:not(.role-menu__toggle--active) {
+  opacity: 1;
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.role-menu__toggle--open:not(.role-menu__toggle--active) {
+  opacity: 1;
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.role-menu__toggle--active,
+.role-menu__toggle--active:hover {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-btn-text) !important;
+  opacity: 1 !important;
+}
+
+.role-menu__toggle--active .role-menu__sort,
+.role-menu__toggle--active .role-menu__chevron,
+.role-menu__toggle--active:hover .role-menu__sort,
+.role-menu__toggle--active:hover .role-menu__chevron {
+  color: var(--color-btn-text) !important;
+  stroke: currentColor;
+}
+
+.role-menu__label,
+.role-menu__sort,
+.role-menu__chevron {
+  pointer-events: none;
+}
+
+.role-menu__sort {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.role-menu__chevron {
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: transform var(--transition-fast);
+}
+
+.role-menu__toggle--open .role-menu__chevron {
+  transform: rotate(180deg);
+}
+
+/* Выпадающая плашка со списком должностей (единый список без колонок) */
+.role-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 100;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 1rem;
+  box-shadow: 0 12px 32px rgba(1, 30, 65, 0.18), 0 2px 8px rgba(1, 30, 65, 0.08);
+  width: max-content;
+  min-width: 250px;
+  max-width: min(92vw, 360px);
+  max-height: min(70vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  animation: fadeDown 0.2s var(--transition-fast) both;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.role-menu__panel[hidden] {
+  display: none !important;
+}
+
+[data-theme="warm"] .role-menu__panel {
+  box-shadow: 0 12px 32px rgba(38, 42, 51, 0.2), 0 2px 8px rgba(38, 42, 51, 0.1);
+}
+
+.role-menu__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.6rem;
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.role-menu__option:hover:not(:disabled):not(.role-menu__option--active) {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.role-menu__option--active,
+.role-menu__option--active:hover {
+  background: var(--color-accent) !important;
+  font-weight: 600;
+  color: var(--color-btn-text) !important;
+}
+
+.role-menu__option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.role-menu__name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-menu__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.role-menu__option--active .role-menu__count,
+.role-menu__option--active:hover .role-menu__count {
+  background: color-mix(in srgb, var(--color-btn-text) 25%, transparent);
+  color: var(--color-btn-text);
+  opacity: 1;
 }
 
 /* ===== Сравнение ===== */
@@ -2115,12 +2539,17 @@ body {
   .page-bg,
   .site-header,
   #homeView,
+  #compareView,
+  .compare,
   .portfolio-side-nav,
   .other-employees,
   .portfolio__actions-wrap,
   .certificates,
   .scroll-top-btn,
-  .lightbox {
+  .fullscreen-btn,
+  .lightbox,
+  .toast,
+  .qr-modal {
     display: none !important;
   }
 

@@ -1,5 +1,7 @@
 import { getEmployees, getCertificates, getFlag, normalizeSearch } from './data.js';
 import { LANGS, getLang, setLang, t } from './i18n.js';
+import { generateQrSvg } from './qr.js';
+import { generateVCard } from './vcard.js';
 
 const homeView = document.getElementById('homeView');
 const portfolioView = document.getElementById('portfolioView');
@@ -47,6 +49,23 @@ function readIdSet(key) {
 function writeIdSet(key, ids) {
   try {
     localStorage.setItem(key, JSON.stringify([...ids]));
+  } catch {
+    /* приватный режим — просто не сохраняем */
+  }
+}
+
+/** Строка из localStorage; если хранилище запрещено браузером — null, а не падение скрипта */
+function readStored(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(key, value) {
+  try {
+    localStorage.setItem(key, value);
   } catch {
     /* приватный режим — просто не сохраняем */
   }
@@ -100,7 +119,7 @@ function toggleBookmark(employeeId) {
   
   // Re-render filters to update bookmark count
   applyFilters();
-  if (!compareView.hidden) renderComparison();
+  if (currentView === compareView) renderComparison();
 }
 
 updateCompareButton();
@@ -159,12 +178,13 @@ function applyLanguage(lang) {
 
   applyStaticTranslations();
   updateLangSwitchUI();
-  applyTheme(localStorage.getItem('crowe_theme') || 'crowe-light');
+  // Только обновить подпись темы; берём её со страницы — хранилище может быть недоступно
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'crowe-light');
 
   // Перерисовываем всё, что построено из данных
   applyFilters();
-  if (!compareView.hidden) renderComparison();
-  if (!portfolioView.hidden && currentEmployeeId) {
+  if (currentView === compareView) renderComparison();
+  if (currentView === portfolioView && currentEmployeeId) {
     const employee = people.find((e) => e.id === currentEmployeeId);
     if (employee) renderPortfolio(employee);
   }
@@ -177,9 +197,10 @@ langSwitch?.addEventListener('click', (e) => {
 
 // Theme management
 const THEMES = ['crowe-light', 'warm'];
+const THEME_KEY = 'crowe_theme';
 
 function initTheme() {
-  const savedTheme = localStorage.getItem('crowe_theme') || 'crowe-light';
+  const savedTheme = readStored(THEME_KEY) || 'crowe-light';
   applyTheme(savedTheme);
 }
 
@@ -195,11 +216,12 @@ function applyTheme(theme) {
   if (themeToggleText) {
     themeToggleText.textContent = t(`theme.${theme}`);
   }
-  localStorage.setItem('crowe_theme', theme);
+  writeStored(THEME_KEY, theme);
 }
 
 themeToggleBtn?.addEventListener('click', () => {
-  const currentTheme = localStorage.getItem('crowe_theme') || 'crowe-light';
+  // Тему берём со страницы, а не из хранилища: оно может быть недоступно
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'crowe-light';
   const nextIndex = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
   applyTheme(THEMES[nextIndex]);
 });
@@ -213,6 +235,137 @@ const lightboxClose = document.getElementById('lightboxClose');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
 const lightboxCounter = document.getElementById('lightboxCounter');
+
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
+const qrModal = document.getElementById('qrModal');
+const qrModalBackdrop = document.getElementById('qrModalBackdrop');
+const qrModalClose = document.getElementById('qrModalClose');
+const qrModalName = document.getElementById('qrModalName');
+const qrModalRole = document.getElementById('qrModalRole');
+const qrModalCodeWrap = document.getElementById('qrModalCodeWrap');
+const qrModalCopyBtn = document.getElementById('qrModalCopyBtn');
+
+let toastTimeout = null;
+
+function showToast(message) {
+  if (!toast || !toastText) return;
+  toastText.textContent = message;
+  toast.hidden = false;
+  void toast.offsetWidth;
+  toast.classList.add('toast--visible');
+
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('toast--visible');
+    setTimeout(() => {
+      if (!toast.classList.contains('toast--visible')) {
+        toast.hidden = true;
+      }
+    }, 300);
+  }, 2500);
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fallback below
+    }
+  }
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const success = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return success;
+  } catch {
+    return false;
+  }
+}
+
+function getProfileShareUrl(employeeId) {
+  const origin =
+    typeof window !== 'undefined' && window.location && window.location.origin
+      ? window.location.origin
+      : 'https://portfoliocrowe.vercel.app';
+  return `${origin.replace(/\/$/, '')}/team/${employeeId}`;
+}
+
+async function shareProfile(employee) {
+  const url = getProfileShareUrl(employee.id);
+  await copyTextToClipboard(url);
+  showToast(t('portfolio.copied'));
+}
+
+function downloadVCardFile(employee) {
+  const origin =
+    typeof window !== 'undefined' && window.location && window.location.origin
+      ? window.location.origin
+      : '';
+  const vcfData = generateVCard(employee, origin);
+  const blob = new Blob([vcfData], { type: 'text/vcard;charset=utf-8;' });
+  const objectUrl = typeof URL.createObjectURL === 'function' ? URL.createObjectURL(blob) : '#';
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = `${employee.id}.vcf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  if (typeof URL.revokeObjectURL === 'function') {
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  }
+  showToast(t('portfolio.vcardSaved'));
+}
+
+let qrPreviousActiveElement = null;
+
+function openQrModal(employee) {
+  if (!qrModal) return;
+  qrPreviousActiveElement = document.activeElement;
+
+  const url = getProfileShareUrl(employee.id);
+  if (qrModalName) qrModalName.textContent = employee.name;
+  if (qrModalRole) qrModalRole.textContent = employee.role;
+  if (qrModalCodeWrap) {
+    qrModalCodeWrap.innerHTML = generateQrSvg(url, {
+      color: '#011E41',
+      bgColor: '#FFFFFF',
+      margin: 2,
+    });
+  }
+
+  qrModal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  qrModalClose?.focus();
+}
+
+function closeQrModal() {
+  if (!qrModal || qrModal.hidden) return;
+  qrModal.hidden = true;
+  document.body.style.overflow = '';
+  if (qrPreviousActiveElement && typeof qrPreviousActiveElement.focus === 'function') {
+    qrPreviousActiveElement.focus();
+  }
+  qrPreviousActiveElement = null;
+}
+
+qrModalClose?.addEventListener('click', closeQrModal);
+qrModalBackdrop?.addEventListener('click', closeQrModal);
+qrModalCopyBtn?.addEventListener('click', async () => {
+  if (!currentEmployeeId) return;
+  const url = getProfileShareUrl(currentEmployeeId);
+  await copyTextToClipboard(url);
+  showToast(t('portfolio.copied'));
+});
 
 let currentCerts = [];
 let lightboxTrigger = null;
@@ -280,7 +433,7 @@ function renderCertificates(employeeId, options = {}) {
   const grid = document.createElement('div');
   grid.className = 'certificates__grid';
 
-  const displayName = options.displayName || name;
+  const displayName = options.displayName || '';
 
   certs.forEach((cert, i) => {
     const item = document.createElement('div');
@@ -375,7 +528,7 @@ function renderPortfolio(employee) {
   resumeContent.appendChild(body);
   portfolioContent.appendChild(resumeContent);
 
-  // ----- Actions bar (Download PDF + Direct Telegram link + Bookmark) -----
+  // ----- Actions bar (Download PDF + Share + QR + vCard + Contact + Bookmark) -----
   const actionsWrap = document.createElement('div');
   actionsWrap.className = 'portfolio__actions-wrap';
   
@@ -388,6 +541,37 @@ function renderPortfolio(employee) {
         <path d="M3.75 15.5H16.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
       <span>${t('portfolio.download')}</span>
+    </button>
+    <button class="portfolio__share-btn" id="shareBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="18" cy="5" r="3"/>
+        <circle cx="6" cy="12" r="3"/>
+        <circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+      <span>${t('portfolio.share')}</span>
+    </button>
+    <button class="portfolio__qr-btn" id="qrBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="14" y="14" width="3" height="3"/>
+        <rect x="18" y="18" width="3" height="3"/>
+        <rect x="18" y="14" width="3" height="3"/>
+        <rect x="14" y="18" width="3" height="3"/>
+      </svg>
+      <span>${t('portfolio.qr')}</span>
+    </button>
+    <button class="portfolio__vcard-btn" id="vcardBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
+      <span>${t('portfolio.vcard')}</span>
     </button>
     <a class="portfolio__contact-btn" href="https://t.me/crowe_uz" target="_blank" rel="noopener">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -404,11 +588,12 @@ function renderPortfolio(employee) {
   `;
   portfolioContent.appendChild(actionsWrap);
   
-  // Bookmark button functionality
-  const bookmarkBtn = document.getElementById('bookmarkBtn');
-  bookmarkBtn.addEventListener('click', () => toggleBookmark(employee.id));
-
+  // Action buttons event listeners
   document.getElementById('downloadPdfBtn')?.addEventListener('click', () => printResume(employee));
+  document.getElementById('shareBtn')?.addEventListener('click', () => shareProfile(employee));
+  document.getElementById('qrBtn')?.addEventListener('click', () => openQrModal(employee));
+  document.getElementById('vcardBtn')?.addEventListener('click', () => downloadVCardFile(employee));
+  document.getElementById('bookmarkBtn')?.addEventListener('click', () => toggleBookmark(employee.id));
 
   // ----- Certificates -----
   const certsBlock = renderCertificates(employee.id, { displayName: employee.name });
@@ -862,6 +1047,7 @@ function renderFilterChips() {
     } else {
       if (tag === 'all') chip.classList.add('filter-chip--all');
       else if (tag.startsWith('office:')) chip.classList.add('filter-chip--office');
+      else chip.classList.add('filter-chip--role');
       chip.innerHTML = `
         <span class="filter-chip__label">${getTagLabel(tag)}</span>
         <span class="filter-chip__count">${count}</span>
@@ -876,7 +1062,122 @@ function renderFilterChips() {
 
     filterChipsContainer.appendChild(chip);
   });
+
+  // На телефоне чипы должностей занимали полэкрана — там их заменяет меню.
+  // Рисуем оба варианта, а какой показать, решает CSS по ширине экрана.
+  const roleItems = tagItems.filter(({ tag }) => tag.startsWith('role:'));
+  if (roleItems.length) {
+    const menu = renderRoleMenu(roleItems);
+    const firstRoleChip = filterChipsContainer.querySelector('.filter-chip--role');
+    filterChipsContainer.insertBefore(menu, firstRoleChip);
+  }
 }
+
+/** Открыто ли меню должностей — переживает перерисовку чипов при вводе в поиск */
+let roleMenuOpen = false;
+
+function renderRoleMenu(roleItems) {
+  const activeRole = activeTag.startsWith('role:') ? activeTag : null;
+
+  const menu = document.createElement('div');
+  menu.className = 'role-menu';
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.id = 'roleMenuToggle';
+  toggle.className = 'role-menu__toggle';
+  toggle.classList.toggle('role-menu__toggle--active', Boolean(activeRole));
+  toggle.classList.toggle('role-menu__toggle--open', roleMenuOpen);
+  toggle.setAttribute('aria-haspopup', 'true');
+  toggle.setAttribute('aria-controls', 'roleMenuPanel');
+  toggle.setAttribute('aria-expanded', String(roleMenuOpen));
+  toggle.innerHTML = `
+    <span class="role-menu__label"></span>
+    <svg class="role-menu__sort" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+      <path d="M2.5 4h5M2.5 8h4M2.5 12h3"/>
+      <path d="M10.5 5.5l1.5-2.5 1.5 2.5m-2.4-.8h1.8" stroke-width="1.2"/>
+      <path d="M11 10.5h2.5l-2.5 3h2.5" stroke-width="1.2"/>
+    </svg>
+    <svg class="role-menu__chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 4.5L6 7.5L9 4.5"/>
+    </svg>
+  `;
+  // Выбранная должность видна прямо на кнопке — иначе непонятно, почему карточек мало
+  const roleTitle = t('filter.role');
+  const fallbackTitle = getLang() === 'ru' ? 'Должность' : 'Role';
+  const label = activeRole ? getTagLabel(activeRole) : (roleTitle && roleTitle !== 'filter.role' ? roleTitle : fallbackTitle);
+  toggle.querySelector('.role-menu__label').textContent = label;
+  toggle.addEventListener('click', () => setRoleMenuOpen(!roleMenuOpen));
+
+  const panel = document.createElement('div');
+  panel.id = 'roleMenuPanel';
+  panel.className = 'role-menu__panel';
+  panel.setAttribute('role', 'group');
+  const accessibleRoleTitle = roleTitle && roleTitle !== 'filter.role' ? roleTitle : fallbackTitle;
+  panel.setAttribute('aria-label', accessibleRoleTitle);
+  panel.hidden = !roleMenuOpen;
+
+  // В меню — по алфавиту единым списком без колонок
+  const collator = new Intl.Collator(getLang());
+  roleItems
+    .map((item) => ({ ...item, label: getTagLabel(item.tag) }))
+    .sort((a, b) => collator.compare(a.label, b.label))
+    .forEach(({ tag, count, label }) => {
+      const isActive = tag === activeTag;
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'role-menu__option';
+      option.classList.toggle('role-menu__option--active', isActive);
+      option.setAttribute('aria-pressed', String(isActive));
+      option.disabled = count === 0 && !isActive;
+      option.innerHTML = '<span class="role-menu__name"></span><span class="role-menu__count"></span>';
+      option.querySelector('.role-menu__name').textContent = label;
+      option.querySelector('.role-menu__count').textContent = count;
+      option.addEventListener('click', () => {
+        // Повторный выбор той же должности снимает фильтр
+        activeTag = isActive ? 'all' : tag;
+        roleMenuOpen = false;
+        applyFilters();
+        document.getElementById('roleMenuToggle')?.focus();
+      });
+      panel.appendChild(option);
+    });
+
+  menu.append(toggle, panel);
+  return menu;
+}
+
+/** Открытие/закрытие без перерисовки — чтобы не терялся фокус на кнопке */
+function setRoleMenuOpen(open) {
+  roleMenuOpen = open;
+  const toggle = document.getElementById('roleMenuToggle');
+  const panel = document.getElementById('roleMenuPanel');
+  if (!toggle || !panel) return;
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.classList.toggle('role-menu__toggle--open', open);
+  panel.hidden = !open;
+
+  if (open) {
+    panel.style.left = '0';
+    // Выравниваем панель, чтобы она не вылезала за правый край экрана телефона
+    requestAnimationFrame(() => {
+      if (typeof window !== 'undefined' && panel.getBoundingClientRect) {
+        const rect = panel.getBoundingClientRect();
+        if (rect.right > window.innerWidth - 12) {
+          const diff = rect.right - (window.innerWidth - 12);
+          panel.style.left = `-${diff}px`;
+        }
+      }
+    });
+  }
+}
+
+// Клик мимо меню закрывает его. isConnected — цель могли уже перерисовать
+document.addEventListener('click', (e) => {
+  if (!roleMenuOpen || !e.target.isConnected) return;
+  if (e.target.closest('.role-menu')) return;
+  setRoleMenuOpen(false);
+});
 
 function applyFilters() {
   // Чип закладок скрыт при пустом списке — возвращаемся к «Все»
@@ -903,6 +1204,7 @@ if (searchInput) {
   searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value;
     if (searchClearBtn) searchClearBtn.hidden = !searchQuery;
+    searchInput.closest('.search-box')?.classList.toggle('search-box--has-value', Boolean(searchQuery));
     applyFilters();
   });
 }
@@ -912,6 +1214,7 @@ if (searchClearBtn) {
     searchQuery = '';
     searchInput.value = '';
     searchClearBtn.hidden = true;
+    searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
     applyFilters();
     searchInput.focus();
   });
@@ -921,7 +1224,11 @@ if (resetFiltersBtn) {
   resetFiltersBtn.addEventListener('click', () => {
     activeTag = 'all';
     searchQuery = '';
-    if (searchInput) searchInput.value = '';
+    roleMenuOpen = false;
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
+    }
     if (searchClearBtn) searchClearBtn.hidden = true;
     renderFilterChips();
     applyFilters();
@@ -933,28 +1240,64 @@ function renderCards(list = people) {
   list.forEach((emp, i) => cardsGrid.appendChild(createEmployeeCard(emp, i)));
 }
 
-/** Показывает один из видов, гася предыдущий. Адрес и заголовок — на вызывающем */
-function showView(target) {
-  const views = [homeView, compareView, portfolioView];
-  const current = views.find((v) => !v.hidden);
-  backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
-  if (current === target) return;
+const VIEWS = [homeView, compareView, portfolioView];
 
-  current.classList.remove('view--active');
-  current.classList.add('view--leaving');
-  setTimeout(() => {
-    current.hidden = true;
-    current.classList.remove('view--leaving');
+/**
+ * Вид, который показан или вот-вот будет показан. По `hidden` судить нельзя:
+ * во время перехода старый вид ещё виден, а новый уже выбран.
+ */
+let currentView = homeView;
+let viewTimer = null;
+
+/**
+ * Показывает один из видов, гася остальные. Адрес — на вызывающем.
+ * Новый вызов отменяет незавершённый переход: иначе быстрый клик «Назад»
+ * сразу после открытия профиля оставлял на экране профиль при адресе «/».
+ */
+function showView(target) {
+  setRoleMenuOpen(false);
+  clearTimeout(viewTimer);
+  viewTimer = null;
+  currentView = target;
+  backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
+  updateDocumentTitle();
+
+  const others = VIEWS.filter((v) => v !== target);
+
+  // Цель уже на экране — просто добиваем то, что не успело уйти
+  if (!target.hidden && !target.classList.contains('view--leaving')) {
+    for (const view of others) {
+      view.hidden = true;
+      view.classList.remove('view--active', 'view--leaving');
+    }
+    return;
+  }
+
+  target.hidden = true;
+  target.classList.remove('view--active', 'view--leaving');
+  for (const view of others) {
+    if (view.hidden) continue;
+    view.classList.remove('view--active');
+    view.classList.add('view--leaving');
+  }
+
+  viewTimer = setTimeout(() => {
+    viewTimer = null;
+    for (const view of others) {
+      view.hidden = true;
+      view.classList.remove('view--leaving');
+    }
     target.hidden = false;
-    target.classList.remove('view--leaving');
-    requestAnimationFrame(() => target.classList.add('view--active'));
+    requestAnimationFrame(() => {
+      // За кадр могли успеть уйти на другой вид
+      if (currentView === target) target.classList.add('view--active');
+    });
   }, viewTransitionMs());
 }
 
 /** Возврат к списку команды. push=false — когда сюда привёл сам браузер */
 function goHome({ push = true } = {}) {
   currentEmployeeId = null;
-  updateDocumentTitle();
   if (push) history.pushState(null, '', '/');
   showView(homeView);
 }
@@ -975,7 +1318,7 @@ function employeeIdFromUrl() {
 
 /** Заголовок вкладки: на странице сотрудника — его имя и должность */
 function updateDocumentTitle() {
-  if (!compareView.hidden) {
+  if (currentView === compareView) {
     document.title = t('meta.compareTitle');
     return;
   }
@@ -1067,9 +1410,6 @@ lightbox.addEventListener('click', (e) => {
   if (e.target === lightbox) closeLightbox();
 });
 
-// Touch device detection
-const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
 // Swipe gesture functionality
 let touchStartX = 0;
 let touchStartY = 0;
@@ -1097,8 +1437,10 @@ lightbox.addEventListener('touchend', (e) => {
 }, { passive: true });
 
 // Magnifying lens functionality
-lightboxImg.addEventListener('mousemove', (e) => {
-  if (isTouchDevice) return;
+// Лупа только для мыши: на ноутбуке с сенсорным экраном мышь тоже работает,
+// а касание пальцем — нет, иначе лупа мешала бы свайпу
+lightboxImg.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'mouse') return;
   const rect = lightboxImg.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -1110,62 +1452,140 @@ lightboxImg.addEventListener('mousemove', (e) => {
   const zoom = 2;
   lightboxLens.style.backgroundImage = `url(${lightboxImg.src})`;
   lightboxLens.style.backgroundSize = `${rect.width * zoom}px ${rect.height * zoom}px`;
-  lightboxLens.style.backgroundPosition = `-${x * zoom - 75}px -${y * zoom - 75}px`;
+  // Знак ставим числом, а не приклеиваем «-» к строке: у краёв картинки
+  // смещение отрицательное и получалось невалидное «--20px»
+  lightboxLens.style.backgroundPosition = `${75 - x * zoom}px ${75 - y * zoom}px`;
 });
 
-lightboxImg.addEventListener('mouseleave', () => {
-  if (isTouchDevice) return;
+lightboxImg.addEventListener('pointerleave', () => {
   lightboxLens.style.display = 'none';
 });
 
 // Global Keyboard Navigation
 document.addEventListener('keydown', (e) => {
-  // Ignore keyboard shortcuts when typing in search input
+  // Ignore keyboard shortcuts when typing in search input (except Escape)
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-    if (e.key === 'Escape' && searchInput && searchInput.value) {
-      searchQuery = '';
-      searchInput.value = '';
-      if (searchClearBtn) searchClearBtn.hidden = true;
-      applyFilters();
-      searchInput.blur();
+    if (e.key === 'Escape') {
+      if (searchInput) {
+        if (searchInput.value || searchQuery) {
+          searchQuery = '';
+          searchInput.value = '';
+          if (searchClearBtn) searchClearBtn.hidden = true;
+          searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
+          applyFilters();
+        }
+        searchInput.blur();
+      }
     }
     return;
   }
 
-  // 1. Lightbox active
+  // '/' shortcut: Focus into search input from anywhere
+  if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    if (currentView !== homeView) {
+      goHome({ push: true });
+    }
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.select();
+    }
+    return;
+  }
+
+  // Alt+← / Cmd+← — «Назад» в браузере; перехватывать стрелки с модификаторами
+  // нельзя, иначе одновременно срабатывали и браузер, и сайт
+  const isArrow = (e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
+    !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+
+  // 0. QR Modal active
+  if (qrModal && !qrModal.hidden) {
+    if (e.key === 'Escape') {
+      closeQrModal();
+      return;
+    }
+  }
+
+  // 1. Role menu open
+  if (roleMenuOpen) {
+    if (e.key === 'Escape') {
+      setRoleMenuOpen(false);
+      document.getElementById('roleMenuToggle')?.focus();
+      return;
+    }
+  }
+
+  // 2. Lightbox active
   if (!lightbox.hidden) {
     if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') navigateLightbox(-1);
-    if (e.key === 'ArrowRight') navigateLightbox(1);
+    if (isArrow) navigateLightbox(e.key === 'ArrowLeft' ? -1 : 1);
     if (e.key === 'Tab') trapLightboxFocus(e);
     return;
   }
 
-  // 2. Portfolio view active
-  if (!portfolioView.hidden) {
+  // 3. Comparison view active
+  if (currentView === compareView) {
+    if (e.key === 'Escape') {
+      goHome();
+      return;
+    }
+    if (isArrow) {
+      const scrollContainer = document.querySelector('.compare__scroll');
+      if (scrollContainer) {
+        const scrollAmount = 288;
+        scrollContainer.scrollBy({
+          left: e.key === 'ArrowLeft' ? -scrollAmount : scrollAmount,
+          behavior: scrollBehavior(),
+        });
+      }
+      return;
+    }
+    return;
+  }
+
+  // 4. Portfolio view active
+  if (currentView === portfolioView) {
     if (e.key === 'Escape') {
       goHome();
       return;
     }
 
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (isArrow) {
       const idx = people.findIndex((emp) => emp.id === currentEmployeeId);
       if (idx !== -1) {
         const step = e.key === 'ArrowLeft' ? -1 : 1;
         const nextIdx = (idx + step + people.length) % people.length;
         openPortfolio(people[nextIdx].id);
       }
+      return;
+    }
+  }
+
+  // 5. Home view: Escape resets active search
+  if (currentView === homeView && e.key === 'Escape') {
+    if (searchQuery || (searchInput && searchInput.value)) {
+      searchQuery = '';
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
+      }
+      if (searchClearBtn) searchClearBtn.hidden = true;
+      applyFilters();
     }
   }
 });
 
 window.addEventListener('popstate', () => {
+  if (qrModal && !qrModal.hidden) closeQrModal();
+
+  // Окно сертификата не должно висеть поверх другой страницы
+  if (!lightbox.hidden) closeLightbox();
+
   const id = employeeIdFromUrl();
   const employee = id ? people.find((e) => e.id === id) : null;
   if (employee) {
     currentEmployeeId = employee.id;
     renderPortfolio(employee);
-    updateDocumentTitle();
     showView(portfolioView);
     return;
   }
@@ -1200,12 +1620,16 @@ function initFromUrl() {
 
 /** Первый показ при заходе по прямому адресу — без перехода, страница и так грузится */
 function revealImmediately(target) {
-  for (const view of [homeView, compareView, portfolioView]) {
+  clearTimeout(viewTimer);
+  viewTimer = null;
+  currentView = target;
+  for (const view of VIEWS) {
     view.hidden = view !== target;
     view.classList.toggle('view--active', view === target);
     view.classList.remove('view--leaving');
   }
   backBtn.style.display = target === homeView ? 'none' : 'inline-flex';
+  updateDocumentTitle();
 }
 
 // ----- Scroll To Top Button -----
@@ -1297,3 +1721,16 @@ updateLangSwitchUI();
 renderFilterChips();
 renderCards();
 initFromUrl();
+
+// Register Service Worker for offline PWA support
+if (
+  typeof window !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  (window.location.protocol === 'https:' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1')
+) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}

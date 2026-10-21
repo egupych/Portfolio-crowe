@@ -26,6 +26,15 @@ export default [
     },
   },
   {
+    // Сервис-воркер: ServiceWorker globals
+    files: ['sw.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.serviceworker,
+    },
+  },
+  {
     rules: {
       // Необъявленная переменная в браузере молча ломает страницу без ошибки сборки
       'no-undef': 'error',

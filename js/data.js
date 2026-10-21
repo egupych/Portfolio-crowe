@@ -1,4 +1,5 @@
 import { employeesEn } from './data.en.js';
+import { employeesUz } from './data.uz.js';
 
 const FLAGS = {
   ru: '/flags/ru.svg',
@@ -782,7 +783,7 @@ export const employees = [
     name: 'Сергей Секачев',
     role: 'Эксперт по оценке / актуарий',
     office: 'Crowe Россия',
-    photo: '/photos/webp/sergey-sekachev.webp',
+    photo: '/photos/placeholder.svg',
     languages: ['ru', 'uk'],
     tags: [
       'Экспертиза в области судебной оценки',
@@ -873,8 +874,8 @@ function localizeSections(baseSections = [], translatedSections = []) {
 
 /** Приводит строку к виду, в котором хранится поисковый индекс */
 export function normalizeSearch(text) {
-  // ё → е, иначе «учет» не находит «учёт»
-  return text.toLowerCase().replace(/ё/g, 'е');
+  // ё → е, иначе «учет» не находит «учёт»; апострофы к единому виду
+  return text.toLowerCase().replace(/ё/g, 'е').replace(/[‘’`ʼ]/g, "'");
 }
 
 /**
@@ -905,7 +906,12 @@ export function getEmployees(lang) {
       // roleKey и officeKey — русские значения: не меняются при переключении
       // языка, поэтому годятся как стабильные ключи фильтра
       const base = { ...emp, roleKey: emp.role, officeKey: emp.office };
-      const tr = lang === 'ru' ? null : employeesEn[emp.id];
+      const tr =
+        lang === 'ru'
+          ? null
+          : lang === 'uz'
+            ? employeesUz[emp.id] || employeesEn[emp.id]
+            : employeesEn[emp.id];
       const localized = !tr
         ? base
         : {

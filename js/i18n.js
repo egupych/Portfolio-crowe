@@ -1,9 +1,9 @@
 /**
- * Двуязычность интерфейса (EN / RU). Язык по умолчанию — английский.
- * UI internationalisation (EN / RU). English is the default language.
+ * Трёхъязычность интерфейса (EN / RU / UZ). Язык по умолчанию — английский.
+ * UI internationalisation (EN / RU / UZ). English is the default language.
  */
 
-export const LANGS = ['en', 'ru'];
+export const LANGS = ['en', 'ru', 'uz'];
 export const DEFAULT_LANG = 'en';
 
 const LANG_KEY = 'crowe_lang';
@@ -23,6 +23,7 @@ export const STRINGS = {
     'header.langTitle': 'Switch language',
     'header.langRu': 'RU',
     'header.langEn': 'EN',
+    'header.langUz': 'UZ',
     'header.themeAria': 'Switch theme',
     'header.themeTitle': 'Change theme',
     'header.compare': 'Compare',
@@ -42,6 +43,7 @@ export const STRINGS = {
 
     'filter.all': 'All',
     'filter.bookmarks': 'Bookmarks',
+    'filter.role': 'Role',
 
     'portfolio.prev': 'Previous specialist',
     'portfolio.next': 'Next specialist',
@@ -51,6 +53,15 @@ export const STRINGS = {
     'portfolio.telegram': 'Message on Telegram',
     'portfolio.bookmarkAdd': 'Add to bookmarks',
     'portfolio.bookmarkAdded': 'Bookmarked',
+    'portfolio.share': 'Share profile',
+    'portfolio.copied': 'Link copied to clipboard',
+    'portfolio.qr': 'QR code',
+    'portfolio.qrTitle': '{name} — QR Code',
+    'portfolio.qrHint': 'Scan with phone camera to view profile',
+    'portfolio.qrClose': 'Close',
+    'portfolio.qrCopyLink': 'Copy link',
+    'portfolio.vcard': 'Save contact',
+    'portfolio.vcardSaved': 'Contact card downloaded',
 
     'compare.title': 'Comparison',
     'compare.onlyDiff': 'Differences only',
@@ -62,7 +73,7 @@ export const STRINGS = {
     'compare.remove': 'Remove {name} from comparison',
     'compare.open': 'Open profile',
     'compare.hintOne': 'Bookmark at least one more specialist — there is nothing to compare with a single one.',
-    'compare.hintSame': 'The compared specialists differ in every row shown.',
+    'compare.hintSame': 'The compared specialists match in every row — there are no differences.',
     'compare.nothing': 'Nothing is bookmarked yet.',
     'meta.compareTitle': 'Comparison | Crowe Uzbekistan',
 
@@ -96,6 +107,7 @@ export const STRINGS = {
     'header.langTitle': 'Переключить язык',
     'header.langRu': 'RU',
     'header.langEn': 'EN',
+    'header.langUz': 'UZ',
     'header.themeAria': 'Переключить тему',
     'header.themeTitle': 'Сменить тему',
     'header.compare': 'Сравнить',
@@ -115,6 +127,7 @@ export const STRINGS = {
 
     'filter.all': 'Все',
     'filter.bookmarks': 'Закладки',
+    'filter.role': 'Должность',
 
     'portfolio.prev': 'Предыдущий специалист',
     'portfolio.next': 'Следующий специалист',
@@ -124,6 +137,15 @@ export const STRINGS = {
     'portfolio.telegram': 'Написать в Telegram',
     'portfolio.bookmarkAdd': 'Добавить в закладки',
     'portfolio.bookmarkAdded': 'В закладках',
+    'portfolio.share': 'Поделиться',
+    'portfolio.copied': 'Ссылка скопирована',
+    'portfolio.qr': 'QR-код',
+    'portfolio.qrTitle': '{name} — QR-код',
+    'portfolio.qrHint': 'Наведите камеру смартфона, чтобы открыть профиль',
+    'portfolio.qrClose': 'Закрыть',
+    'portfolio.qrCopyLink': 'Скопировать ссылку',
+    'portfolio.vcard': 'Визитка vCard',
+    'portfolio.vcardSaved': 'Контактная визитка скачана',
 
     'compare.title': 'Сравнение',
     'compare.onlyDiff': 'Только различия',
@@ -135,7 +157,7 @@ export const STRINGS = {
     'compare.remove': 'Убрать {name} из сравнения',
     'compare.open': 'Открыть профиль',
     'compare.hintOne': 'Отметьте ещё хотя бы одного специалиста — одного сравнивать не с кем.',
-    'compare.hintSame': 'Показанные специалисты различаются по всем строкам.',
+    'compare.hintSame': 'У выбранных специалистов все строки совпадают — различий нет.',
     'compare.nothing': 'В закладках пока никого нет.',
     'meta.compareTitle': 'Сравнение | Crowe Uzbekistan',
 
@@ -155,12 +177,100 @@ export const STRINGS = {
     'fullscreen.enter': 'На весь экран',
     'fullscreen.exit': 'Свернуть',
   },
+
+  uz: {
+    'html.lang': 'uz',
+    'meta.title': 'Crowe Uzbekistan — Jamoa portfoliosi',
+    'meta.description': 'Crowe Uzbekistan jamoasining portfoliosi va rezyumelari.',
+    'meta.notFound': 'Sahifa topilmadi',
+    'meta.personTitle': '{name} — {role} | Crowe Uzbekistan',
+    'meta.personDescription': '{name}, Crowe Uzbekistanda {role}. Rezyume, malaka va sertifikatlar.',
+
+    'header.logoAria': 'Crowe Uzbekistan',
+    'header.langAria': 'Tilni almashtirish',
+    'header.langTitle': 'Tilni almashtirish',
+    'header.langRu': 'RU',
+    'header.langEn': 'EN',
+    'header.langUz': 'UZ',
+    'header.themeAria': 'Mavzuni almashtirish',
+    'header.themeTitle': 'Mavzuni o‘zgartirish',
+    'header.compare': 'Taqqoslash',
+    'header.back': 'Jamoaga qaytish',
+
+    'theme.crowe-light': 'Crowe Light',
+    'theme.warm': 'Iliq',
+
+    'home.heading': 'Crowe Uzbekistan — jamoa portfoliosi',
+
+    'search.placeholder': 'Ism, lavozim yoki rezyume bo‘yicha qidiruv…',
+    'search.aria': 'Mutaxassislarni qidirish',
+    'search.clear': 'Qidiruvni tozalash',
+
+    'results.empty': 'So‘rovingiz bo‘yicha hech narsa topilmadi',
+    'results.reset': 'Filtrlarni bekor qilish',
+
+    'filter.all': 'Barchasi',
+    'filter.bookmarks': 'Tanlanganlar',
+    'filter.role': 'Lavozim',
+
+    'portfolio.prev': 'Oldingi mutaxassis',
+    'portfolio.next': 'Keyingi mutaxassis',
+    'portfolio.others': 'Boshqa jamoa a’zolari',
+    'portfolio.download': 'Rezyumeni PDF formatida yuklab olish',
+    'portfolio.downloadFile': '{name} — rezyume.pdf',
+    'portfolio.telegram': 'Telegram orqali bog‘lanish',
+    'portfolio.bookmarkAdd': 'Tanlanganlarga qo‘shish',
+    'portfolio.bookmarkAdded': 'Tanlanganlarda',
+    'portfolio.share': 'Ulashish',
+    'portfolio.copied': 'Havola nusxalandi',
+    'portfolio.qr': 'QR-kod',
+    'portfolio.qrTitle': '{name} — QR-kod',
+    'portfolio.qrHint': 'Profilni ochish uchun telefon kamerasini qarating',
+    'portfolio.qrClose': 'Yopish',
+    'portfolio.qrCopyLink': 'Havolani nusxalash',
+    'portfolio.vcard': 'vCard vizitka',
+    'portfolio.vcardSaved': 'Kontakt vizitkasi yuklab olindi',
+
+    'compare.title': 'Taqqoslash',
+    'compare.onlyDiff': 'Faqat farqlar',
+    'compare.role': 'Lavozim',
+    'compare.office': 'Ofis',
+    'compare.languages': 'Tillar',
+    'compare.tags': 'Kompetensiyalar',
+    'compare.certificates': 'Sertifikatlar',
+    'compare.remove': '{name}ni taqqoslashdan olib tashlash',
+    'compare.open': 'Profilni ochish',
+    'compare.hintOne': 'Yana kamida bitta mutaxassisni tanlang — bitta mutaxassisni taqqoslab bo‘lmaydi.',
+    'compare.hintSame': 'Tanlangan mutaxassislarda barcha qatorlar bir xil — farqlar yo‘q.',
+    'compare.nothing': 'Tanlanganlarda hozircha hech kim yo‘q.',
+    'meta.compareTitle': 'Taqqoslash | Crowe Uzbekistan',
+
+    'certs.title': 'Sertifikatlar',
+    'certs.zoom': 'Kattalashtirish',
+    'certs.download': 'PDF formatida yuklab olish',
+    'certs.fileName': '{name} — sertifikat {n}',
+    'certs.alt': '{n}-raqamli sertifikat',
+    'certs.altGeneric': 'Sertifikat',
+
+    'lightbox.title': 'Sertifikatni ko‘rish',
+    'lightbox.close': 'Yopish',
+    'lightbox.prev': 'Oldingi',
+    'lightbox.next': 'Keyingi',
+
+    'scrollTop.aria': 'Yuqoriga qaytish',
+    'fullscreen.enter': 'To‘liq ekran',
+    'fullscreen.exit': 'Ekranni kichraytirish',
+  },
 };
 
 let currentLang = readStoredLang();
 
 function readStoredLang() {
   try {
+    if (typeof window !== 'undefined' && window.location?.search) {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      if (LANGS.includes(urlLang)) return urlLang;
+    }
     const saved = localStorage.getItem(LANG_KEY);
     return LANGS.includes(saved) ? saved : DEFAULT_LANG;
   } catch {

@@ -3,9 +3,13 @@ import { test } from 'node:test';
 
 import { CERTS, employees, getCertificates, getEmployees, getFlag, normalizeSearch } from '../js/data.js';
 import { employeesEn } from '../js/data.en.js';
+import { employeesUz } from '../js/data.uz.js';
+import { generateQrSvg } from '../js/qr.js';
+import { generateVCard } from '../js/vcard.js';
 
 const ru = getEmployees('ru');
 const en = getEmployees('en');
+const uz = getEmployees('uz');
 const byId = (list, id) => list.find((e) => e.id === id);
 
 test('normalizeSearch приводит регистр и убирает ё', () => {
@@ -29,13 +33,22 @@ test('английская версия переводит имя, должно�
   assert.notDeepEqual(vera.tags, byId(ru, 'vera-bell').tags);
 });
 
-test('ключи фильтров остаются русскими на обоих языках', () => {
+test('узбекская версия переводит имя, должность и теги', () => {
+  const vera = byId(uz, 'vera-bell');
+  assert.equal(vera.name, 'Vera Bell');
+  assert.equal(vera.role, 'Boshqaruvchi hamkor');
+  assert.notDeepEqual(vera.tags, byId(ru, 'vera-bell').tags);
+});
+
+test('ключи фильтров остаются русскими на всех языках', () => {
   // roleKey и officeKey — стабильные идентификаторы: при смене языка
   // активный фильтр не должен слетать
-  for (const emp of en) {
-    const same = byId(ru, emp.id);
-    assert.equal(emp.roleKey, same.role);
-    assert.equal(emp.officeKey, same.office);
+  for (const list of [en, uz]) {
+    for (const emp of list) {
+      const same = byId(ru, emp.id);
+      assert.equal(emp.roleKey, same.role);
+      assert.equal(emp.officeKey, same.office);
+    }
   }
 });
 
@@ -109,6 +122,9 @@ test('каждый перевод соответствует существую�
   for (const id of Object.keys(employeesEn)) {
     assert.ok(ids.has(id), `data.en.js: «${id}» — нет сотрудника с таким id`);
   }
+  for (const id of Object.keys(employeesUz)) {
+    assert.ok(ids.has(id), `data.uz.js: «${id}» — нет сотрудника с таким id`);
+  }
 });
 
 test('id сотрудников уникальны', () => {
@@ -117,12 +133,14 @@ test('id сотрудников уникальны', () => {
 });
 
 test('у каждого сотрудника заполнены обязательные поля', () => {
-  for (const emp of en) {
-    for (const field of ['id', 'name', 'role', 'photo', 'search']) {
-      assert.ok(emp[field], `${emp.id}: пустое поле ${field}`);
+  for (const list of [en, uz]) {
+    for (const emp of list) {
+      for (const field of ['id', 'name', 'role', 'photo', 'search']) {
+        assert.ok(emp[field], `${emp.id}: пустое поле ${field}`);
+      }
+      assert.ok(Array.isArray(emp.tags) && emp.tags.length, `${emp.id}: нет тегов`);
+      assert.ok(Array.isArray(emp.languages), `${emp.id}: нет списка языков`);
     }
-    assert.ok(Array.isArray(emp.tags) && emp.tags.length, `${emp.id}: нет тегов`);
-    assert.ok(Array.isArray(emp.languages), `${emp.id}: нет списка языков`);
   }
 });
 
@@ -144,4 +162,26 @@ test('у каждого языка сотрудника есть флаг', () =
     }
   }
   assert.equal(getFlag('нет-такого'), '');
+});
+
+test('generateQrSvg создаёт валидный SVG с правильной разметкой', () => {
+  const svg = generateQrSvg('https://portfoliocrowe.vercel.app/team/vera-bell');
+  assert.ok(svg.startsWith('<svg'), 'начинается с <svg');
+  assert.ok(svg.includes('viewBox="0 0'), 'содержит viewBox');
+  assert.ok(svg.includes('<rect'), 'содержит фоновый <rect');
+  assert.ok(svg.includes('<path d="M'), 'содержит путь с матрицей пикселей');
+  assert.ok(svg.endsWith('</svg>'), 'заканчивается на </svg>');
+});
+
+test('generateVCard генерирует валидный vCard 3.0', () => {
+  const vera = byId(ru, 'vera-bell');
+  const vcard = generateVCard(vera, 'https://portfoliocrowe.vercel.app');
+  assert.ok(vcard.startsWith('BEGIN:VCARD'), 'начинается с BEGIN:VCARD');
+  assert.ok(vcard.includes('VERSION:3.0'), 'версия 3.0');
+  assert.ok(vcard.includes('FN;CHARSET=UTF-8:Вера Белл'), 'полное имя');
+  assert.ok(vcard.includes('N;CHARSET=UTF-8:Белл;Вера;;;'), 'структурированное имя');
+  assert.ok(vcard.includes('ORG;CHARSET=UTF-8:Crowe Uzbekistan'), 'организация');
+  assert.ok(vcard.includes('TITLE;CHARSET=UTF-8:Управляющий партнёр'), 'должность');
+  assert.ok(vcard.includes('URL;WORK;CHARSET=UTF-8:https://portfoliocrowe.vercel.app/team/vera-bell'), 'адрес профиля');
+  assert.ok(vcard.endsWith('END:VCARD'), 'заканчивается на END:VCARD');
 });

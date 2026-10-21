@@ -35,6 +35,17 @@ async function loadApp(url = 'http://localhost/', storage = {}) {
   window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
   window.scrollTo = () => {};
   window.print = () => {};
+  window.URL.createObjectURL = () => 'blob:mock';
+  window.URL.revokeObjectURL = () => {};
+  window.HTMLAnchorElement.prototype.click = function () {
+    if (this.hasAttribute('download')) return;
+    return window.HTMLElement.prototype.click.call(this);
+  };
+  window.navigator.clipboard = {
+    writeText: async (text) => {
+      window.__lastCopied = text;
+    },
+  };
   window.localStorage.clear();
   for (const [key, value] of Object.entries(storage)) window.localStorage.setItem(key, value);
 
@@ -127,6 +138,20 @@ describe('поиск', () => {
     assert.equal(cards().length, 13);
     assert.equal($('#searchInput').value, '');
   });
+
+  test('горячая клавиша / фокусирует строку поиска', async () => {
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: '/', bubbles: true }));
+    assert.equal(dom.window.document.activeElement, $('#searchInput'));
+  });
+
+  test('Escape очищает поиск и снимает фокус', async () => {
+    await search('KPMG');
+    assert.equal(cards().length, 1);
+    $('#searchInput').dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal($('#searchInput').value, '');
+    assert.equal(cards().length, 13);
+  });
 });
 
 describe('фильтр и возврат из профиля', () => {
@@ -173,6 +198,21 @@ describe('роутинг', () => {
     assert.match(dom.window.document.title, /Tatyana Shukst — Audit Director/);
     await click($('#backBtn'));
     assert.match(dom.window.document.title, /Team Portfolio/);
+  });
+
+  test('стрелки влево/вправо в профиле переключают специалистов', async () => {
+    await click(cards()[0]);
+    assert.equal($('.portfolio__name').textContent, 'Vera Bell');
+
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    await new Promise((r) => setTimeout(r, 400));
+    assert.equal($('.portfolio__name').textContent, 'Tatyana Shukst');
+
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    await new Promise((r) => setTimeout(r, 400));
+    assert.equal($('.portfolio__name').textContent, 'Vera Bell');
+
+    await click($('#backBtn'));
   });
 });
 
@@ -261,6 +301,12 @@ describe('переключение языка', () => {
     assert.match(activeChip(), /Консультант по МСФО/);
     assert.equal(cards().length, 4, 'фильтр не должен слетать при смене языка');
     assert.ok(names().includes('Валиджон Турсунов'));
+
+    await click($('#langSwitch [data-lang="uz"]'));
+    assert.equal(dom.window.document.documentElement.lang, 'uz');
+    assert.match(activeChip(), /MHXS bo‘yicha maslahatchi/);
+    assert.equal(cards().length, 4, 'фильтр не должен слетать при переключении на узбекский');
+    assert.ok(names().includes('Validjon Tursunov'));
   });
 });
 
@@ -360,5 +406,67 @@ describe('сравнение', () => {
     assert.ok(rowLabels().includes('Образование'), 'заголовки секций должны переехать на русский');
     assert.equal($('#compareView h1').textContent, 'Сравнение', 'заголовок вида остаётся в документе, просто не виден');
     assert.match(dom.window.document.title, /Сравнение/);
+  });
+
+  test('стрелки влево/вправо в сравнении прокручивают таблицу, Escape возвращает назад', async () => {
+    await loadApp('http://localhost/compare', three);
+    const scrollContainer = $('.compare__scroll');
+    let scrolled = 0;
+    scrollContainer.scrollBy = ({ left }) => { scrolled += left; };
+
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    assert.equal(scrolled, 288);
+
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    assert.equal(scrolled, 0);
+
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await new Promise((r) => setTimeout(r, 400));
+    assert.equal($('#homeView').hidden, false);
+  });
+});
+
+describe('шеринг, визитка и QR-код', () => {
+  before(() => loadApp('http://localhost/team/vera-bell'));
+
+  test('в профиле есть кнопки шеринга, QR-кода и визитки', () => {
+    assert.ok($('#shareBtn'), 'кнопка «Поделиться ссылкой»');
+    assert.ok($('#qrBtn'), 'кнопка «QR-код»');
+    assert.ok($('#vcardBtn'), 'кнопка «Визитка vCard»');
+    assert.ok($('#downloadPdfBtn'), 'кнопка «Скачать PDF»');
+    assert.ok($('#bookmarkBtn'), 'кнопка «В закладки»');
+  });
+
+  test('клик по «Поделиться» копирует красивую ссылку и показывает тост', async () => {
+    await click($('#shareBtn'));
+    assert.equal(dom.window.__lastCopied, 'http://localhost/team/vera-bell');
+    assert.equal($('#toast').hidden, false);
+    assert.match($('#toastText').textContent, /copied/i);
+  });
+
+  test('клик по «QR-код» открывает модальное окно с SVG кодом', async () => {
+    await click($('#qrBtn'));
+    assert.equal($('#qrModal').hidden, false);
+    assert.match($('#qrModalName').textContent, /Vera Bell/);
+    assert.ok($('#qrModalCodeWrap svg'), 'QR-код отрендерен как SVG');
+  });
+
+  test('в модалке QR-кода кнопка копирования также копирует ссылку', async () => {
+    dom.window.__lastCopied = null;
+    await click($('#qrModalCopyBtn'));
+    assert.equal(dom.window.__lastCopied, 'http://localhost/team/vera-bell');
+    assert.equal($('#toast').hidden, false);
+  });
+
+  test('Escape закрывает модалку QR-кода', async () => {
+    assert.equal($('#qrModal').hidden, false);
+    dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal($('#qrModal').hidden, true);
+  });
+
+  test('клик по «Визитка vCard» инициирует сохранение .vcf и показывает тост', async () => {
+    await click($('#vcardBtn'));
+    assert.equal($('#toast').hidden, false);
+    assert.match($('#toastText').textContent, /downloaded|сохранена|скачана/i);
   });
 });

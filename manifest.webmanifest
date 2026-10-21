@@ -1,0 +1,25 @@
+{
+  "name": "Crowe Uzbekistan — Team Portfolio",
+  "short_name": "Crowe Team",
+  "description": "Portfolio and CVs of the Crowe Uzbekistan team.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F5F7",
+  "theme_color": "#011E41",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

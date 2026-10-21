@@ -11,11 +11,14 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
  * Линтера в проекте нет, но синтаксис проверить дёшево: app.js в браузере
  * подключается модулем, и опечатка в нём просто оставляет пустую страницу.
  */
-const files = ['js', 'scripts', 'tests'].flatMap((dir) =>
-  readdirSync(join(ROOT, dir))
-    .filter((f) => f.endsWith('.js') || f.endsWith('.mjs'))
-    .map((f) => join(dir, f)),
-);
+const files = [
+  'sw.js',
+  ...['js', 'scripts', 'tests'].flatMap((dir) =>
+    readdirSync(join(ROOT, dir))
+      .filter((f) => f.endsWith('.js') || f.endsWith('.mjs'))
+      .map((f) => join(dir, f)),
+  ),
+];
 
 test('все модули разбираются без синтаксических ошибок', () => {
   assert.ok(files.length >= 4, 'файлы для проверки не нашлись');
