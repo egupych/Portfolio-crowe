@@ -88,6 +88,11 @@ export const STRINGS = {
     'deck.specialistsCount': '{count} Specialists',
     'deck.summaryTitle': 'Team Member Profile',
     'deck.confidential': 'CONFIDENTIAL',
+    'deck.thSpecialist': 'Specialist',
+    'deck.thRole': 'Role',
+    'deck.thOffice': 'Office',
+    'deck.thLanguages': 'Languages',
+    'deck.thCertificates': 'Certificates',
 
     'certs.title': 'Certificates',
     'certs.zoom': 'Zoom in',
@@ -184,6 +189,11 @@ export const STRINGS = {
     'deck.specialistsCount': '{count} специалистов',
     'deck.summaryTitle': 'Профиль эксперта',
     'deck.confidential': 'КОНФИДЕНЦИАЛЬНО',
+    'deck.thSpecialist': 'Специалист',
+    'deck.thRole': 'Должность',
+    'deck.thOffice': 'Офис',
+    'deck.thLanguages': 'Языки',
+    'deck.thCertificates': 'Сертификаты',
 
     'certs.title': 'Сертификаты',
     'certs.zoom': 'Увеличить',
@@ -280,6 +290,11 @@ export const STRINGS = {
     'deck.specialistsCount': '{count} mutaxassis',
     'deck.summaryTitle': 'Mutaxassis profili',
     'deck.confidential': 'MAXFIY',
+    'deck.thSpecialist': 'Mutaxassis',
+    'deck.thRole': 'Lavozim',
+    'deck.thOffice': 'Ofis',
+    'deck.thLanguages': 'Tillar',
+    'deck.thCertificates': 'Sertifikatlar',
 
     'certs.title': 'Sertifikatlar',
     'certs.zoom': 'Kattalashtirish',
@@ -338,3 +353,36 @@ export function t(key, vars) {
   }
   return value;
 }
+
+/** Склонение числительных (русский, английский, узбекский) */
+export function getPlural(n, type, lang = currentLang) {
+  const forms = {
+    specialists: {
+      ru: { one: 'специалист', few: 'специалиста', many: 'специалистов' },
+      en: { one: 'Specialist', few: 'Specialists', many: 'Specialists' },
+      uz: { one: 'mutaxassis', few: 'mutaxassis', many: 'mutaxassis' },
+    },
+    certificates: {
+      ru: { one: 'сертификат', few: 'сертификата', many: 'сертификатов' },
+      en: { one: 'certificate', few: 'certificates', many: 'certificates' },
+      uz: { one: 'sertifikat', few: 'sertifikat', many: 'sertifikat' },
+    },
+  }[type];
+
+  if (!forms) return `${n}`;
+  const langForms = forms[lang] || forms.en;
+
+  if (lang === 'ru') {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 19) return `${n} ${langForms.many}`;
+    if (mod10 === 1) return `${n} ${langForms.one}`;
+    if (mod10 >= 2 && mod10 <= 4) return `${n} ${langForms.few}`;
+    return `${n} ${langForms.many}`;
+  }
+  if (lang === 'uz') {
+    return `${n} ${langForms.one}`;
+  }
+  return n === 1 ? `${n} ${langForms.one}` : `${n} ${langForms.many}`;
+}
+

@@ -1,5 +1,5 @@
 import { getEmployees, getCertificates, getFlag, normalizeSearch, matchSearchTerm } from './data.js';
-import { LANGS, getLang, setLang, t } from './i18n.js';
+import { LANGS, getLang, setLang, t, getPlural } from './i18n.js';
 import { generateQrSvg } from './qr.js';
 import { generateVCard } from './vcard.js';
 
@@ -988,7 +988,7 @@ function printTeamDeck() {
     </div>
     <div>
       <div class="deck-cover__meta">
-        <span class="deck-cover__tag">${t('deck.specialistsCount', { count: list.length })}</span>
+        <span class="deck-cover__tag">${getPlural(list.length, 'specialists')}</span>
         <span style="font-size: 0.85rem; color: #011E41; opacity: 0.8;">Tashkent, Uzbekistan</span>
       </div>
       <div class="deck-footer" style="border-top: none; padding-top: 1rem;">
@@ -1055,7 +1055,7 @@ function printTeamDeck() {
         <td>${emp.role}</td>
         <td>${emp.office || 'Tashkent'}</td>
         <td>${langs}</td>
-        <td>${certs.length ? `<strong>${certs.length}</strong> (${certsList})` : '—'}</td>
+        <td>${certs.length ? `<strong>${getPlural(certs.length, 'certificates')}</strong> (${certsList})` : '—'}</td>
       </tr>
     `;
   }).join('');
@@ -1066,11 +1066,11 @@ function printTeamDeck() {
       <table class="deck-matrix__table">
         <thead>
           <tr>
-            <th>Specialist</th>
-            <th>Role</th>
-            <th>Office</th>
-            <th>Languages</th>
-            <th>Certificates</th>
+            <th>${t('deck.thSpecialist')}</th>
+            <th>${t('deck.thRole')}</th>
+            <th>${t('deck.thOffice')}</th>
+            <th>${t('deck.thLanguages')}</th>
+            <th>${t('deck.thCertificates')}</th>
           </tr>
         </thead>
         <tbody>
@@ -1080,7 +1080,7 @@ function printTeamDeck() {
     </div>
     <div class="deck-footer">
       <span>${t('deck.footer')}</span>
-      <span>${list.length} Specialists</span>
+      <span>${getPlural(list.length, 'specialists')}</span>
     </div>
   `;
   deck.appendChild(matrixSlide);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { DEFAULT_LANG, LANGS, STRINGS, getLang, setLang, t } from '../js/i18n.js';
+import { DEFAULT_LANG, LANGS, STRINGS, getLang, setLang, t, getPlural } from '../js/i18n.js';
 
 test('язык по умолчанию — английский', () => {
   setLang(DEFAULT_LANG);
@@ -63,3 +63,24 @@ test('подстановки в переводах те же, что в ориг
     }
   }
 });
+
+test('getPlural корректно склоняет слова для русского, английского и узбекского', () => {
+  assert.equal(getPlural(1, 'specialists', 'ru'), '1 специалист');
+  assert.equal(getPlural(2, 'specialists', 'ru'), '2 специалиста');
+  assert.equal(getPlural(3, 'specialists', 'ru'), '3 специалиста');
+  assert.equal(getPlural(4, 'specialists', 'ru'), '4 специалиста');
+  assert.equal(getPlural(5, 'specialists', 'ru'), '5 специалистов');
+  assert.equal(getPlural(21, 'specialists', 'ru'), '21 специалист');
+  assert.equal(getPlural(22, 'specialists', 'ru'), '22 специалиста');
+
+  assert.equal(getPlural(1, 'certificates', 'ru'), '1 сертификат');
+  assert.equal(getPlural(2, 'certificates', 'ru'), '2 сертификата');
+  assert.equal(getPlural(5, 'certificates', 'ru'), '5 сертификатов');
+
+  assert.equal(getPlural(1, 'specialists', 'en'), '1 Specialist');
+  assert.equal(getPlural(2, 'specialists', 'en'), '2 Specialists');
+
+  assert.equal(getPlural(1, 'specialists', 'uz'), '1 mutaxassis');
+  assert.equal(getPlural(2, 'specialists', 'uz'), '2 mutaxassis');
+});
+
