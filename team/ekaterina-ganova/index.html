@@ -85,6 +85,10 @@
           <kbd class="search-box__kbd" id="searchKbd" aria-hidden="true" title="Press / to search">/</kbd>
           <button type="button" id="searchClearBtn" class="search-box__clear" data-i18n-aria="search.clear" aria-label="Clear search" hidden>&times;</button>
         </div>
+        <div class="search-suggestions" id="searchSuggestions">
+          <span class="search-suggestions__label" data-i18n="search.suggestLabel">Popular:</span>
+          <div class="search-suggestions__list" id="searchSuggestionsList"></div>
+        </div>
         <div class="filter-chips" id="filterChips"></div>
       </div>
       <div class="cards-grid" id="cardsGrid"></div>
@@ -99,10 +103,22 @@
       <div class="compare">
         <div class="compare__bar">
           <h1 class="visually-hidden" data-i18n="compare.title">Comparison</h1>
-          <label class="compare__toggle">
-            <input type="checkbox" id="compareOnlyDiff">
-            <span data-i18n="compare.onlyDiff">Differences only</span>
-          </label>
+          <div class="compare__bar-actions">
+            <label class="compare__toggle">
+              <input type="checkbox" id="compareOnlyDiff">
+              <span data-i18n="compare.onlyDiff">Differences only</span>
+            </label>
+            <button class="compare__export-btn" id="compareExportBtn" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span data-i18n="compare.exportTeam">Download team proposal (PDF)</span>
+            </button>
+          </div>
         </div>
         <p class="compare__hint" id="compareHint" hidden></p>
         <div class="compare__scroll">

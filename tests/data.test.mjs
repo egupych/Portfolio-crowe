@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { CERTS, employees, getCertificates, getEmployees, getFlag, normalizeSearch } from '../js/data.js';
+import { CERTS, employees, getCertificates, getEmployees, getFlag, levenshteinDistance, matchSearchTerm, normalizeSearch } from '../js/data.js';
 import { employeesEn } from '../js/data.en.js';
 import { employeesUz } from '../js/data.uz.js';
 import { generateQrSvg } from '../js/qr.js';
@@ -185,3 +185,23 @@ test('generateVCard генерирует валидный vCard 3.0', () => {
   assert.ok(vcard.includes('URL;WORK;CHARSET=UTF-8:https://portfoliocrowe.vercel.app/team/vera-bell'), 'адрес профиля');
   assert.ok(vcard.endsWith('END:VCARD'), 'заканчивается на END:VCARD');
 });
+
+test('levenshteinDistance корректно считает расстояние редактирования', () => {
+  assert.equal(levenshteinDistance('test', 'test'), 0);
+  assert.equal(levenshteinDistance('test', 'text'), 1);
+  assert.equal(levenshteinDistance('kitten', 'sitting'), 3);
+  assert.equal(levenshteinDistance('', 'abc'), 3);
+  assert.equal(levenshteinDistance('abc', ''), 3);
+});
+
+test('matchSearchTerm находит совпадения с опечатками и псевдонимами', () => {
+  const vera = byId(ru, 'vera-bell');
+  assert.ok(matchSearchTerm('дилигинс', vera), 'дилигинс -> Due Diligence');
+  assert.ok(matchSearchTerm('бугалтер', vera), 'бугалтер -> бухгалтер');
+  assert.ok(matchSearchTerm('адитор', vera), 'адитор -> аудитор');
+  assert.ok(matchSearchTerm('мфо', vera), 'мфо -> МСФО');
+
+  const randomEmp = byId(ru, 'sherzodbek-abdukhalimov');
+  assert.equal(matchSearchTerm('совершеннонесуществующееслово123', randomEmp), false);
+});
+

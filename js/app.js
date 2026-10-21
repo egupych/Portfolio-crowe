@@ -1,4 +1,4 @@
-import { getEmployees, getCertificates, getFlag, normalizeSearch } from './data.js';
+import { getEmployees, getCertificates, getFlag, normalizeSearch, matchSearchTerm } from './data.js';
 import { LANGS, getLang, setLang, t } from './i18n.js';
 import { generateQrSvg } from './qr.js';
 import { generateVCard } from './vcard.js';
@@ -16,6 +16,8 @@ const compareBtn = document.getElementById('compareBtn');
 const bookmarkCount = document.getElementById('bookmarkCount');
 const langSwitch = document.getElementById('langSwitch');
 const compareView = document.getElementById('compareView');
+const compareExportBtn = document.getElementById('compareExportBtn');
+const searchSuggestionsList = document.getElementById('searchSuggestionsList');
 
 /** Сотрудники на текущем языке — пересобирается при переключении языка */
 let people = getEmployees(getLang());
@@ -181,7 +183,8 @@ function applyLanguage(lang) {
   // Только обновить подпись темы; берём её со страницы — хранилище может быть недоступно
   applyTheme(document.documentElement.getAttribute('data-theme') || 'crowe-light');
 
-  // Перерисовываем всё, что построено из данных
+  // Перерисовываем подсказки поиска и всё, что построено из данных
+  renderSearchSuggestions();
   applyFilters();
   if (currentView === compareView) renderComparison();
   if (currentView === portfolioView && currentEmployeeId) {
@@ -923,6 +926,10 @@ function renderComparison() {
   } else {
     compareHint.hidden = true;
   }
+
+  if (compareExportBtn) {
+    compareExportBtn.disabled = list.length === 0;
+  }
 }
 
 /** immediate — заход по прямому адресу: страница и так грузится, переход не нужен */
@@ -937,6 +944,161 @@ function openComparison({ push = true, immediate = false } = {}) {
 }
 
 compareOnlyDiff?.addEventListener('change', renderComparison);
+
+function printTeamDeck() {
+  const list = comparedEmployees();
+  if (!list.length) return;
+
+  const prevDeck = document.getElementById('teamDeckPrint');
+  if (prevDeck) prevDeck.remove();
+
+  const deck = document.createElement('div');
+  deck.id = 'teamDeckPrint';
+
+  const origin =
+    typeof window !== 'undefined' && window.location && window.location.origin
+      ? window.location.origin
+      : 'https://portfoliocrowe.vercel.app';
+
+  // 1. Cover Slide
+  const cover = document.createElement('div');
+  cover.className = 'deck-page deck-cover';
+  cover.innerHTML = `
+    <div>
+      <div class="deck-cover__badge-confidential">${t('deck.confidential')}</div>
+      <div class="deck-cover__header">
+        <div class="deck-cover__logo">
+          <svg width="240" height="66" viewBox="0 0 360 100" fill="none">
+            <path d="M59.0289 0.49264C59.4404 -0.1835 60.058 -0.154089 60.4108 0.522042L112.388 99.3905C112.741 100.096 112.653 100.155 112.153 99.5375L75.3159 53.6754C74.8161 53.0874 74.0222 53.0874 73.5224 53.6754L35.5394 99.5669C35.0397 100.184 34.922 100.096 35.3042 99.4199L66.614 42.2097C66.9667 41.5337 66.8785 41.4748 66.3788 42.0627L18.7525 99.5963C18.2528 100.184 18.1645 100.125 18.5467 99.4493L58.7936 29.4803C59.1758 28.8041 59.0876 28.7453 58.5878 29.3333L0.436746 99.5669C-0.062939 100.184 -0.150645 100.125 0.260909 99.4493L59.0289 0.49264Z" fill="#F5A800"/>
+            <path d="M174.182 18.8361C182.796 18.8361 188.822 21.8638 192.791 24.9506L189.352 30.1248V30.0954C186.5 27.7729 180.062 24.833 173.594 24.833C158.689 24.833 149.898 35.5052 149.898 49.6461C149.898 64.8746 160.394 75.1349 173.594 75.1349C180.15 75.1349 185.295 73.077 188.823 70.6663L192.086 75.6641C188.029 78.4276 180.885 81.1617 173.153 81.1617C151.633 81.1617 140.697 66.4328 140.696 49.8225C140.696 34.6821 152.574 18.8361 174.182 18.8361Z" fill="#011E41"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M238.897 36.0346C249.745 36.0346 260.152 44.119 260.152 58.0834C260.152 72.0478 251.626 81.1617 238.897 81.1617C226.167 81.1617 217.7 71.4304 217.7 58.0834C217.7 44.1485 228.049 36.0347 238.897 36.0346ZM238.867 41.5617C229.136 41.5617 226.05 50.3515 226.05 58.0834C226.05 66.168 228.813 75.6641 238.867 75.6641C248.922 75.6641 251.774 66.1974 251.774 58.0834C251.774 49.9693 248.598 41.5617 238.867 41.5617Z" fill="#011E41"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M343.282 36.0346C356.364 36.0346 360.774 47.8233 359.892 59.1124H330.905C330.817 67.7263 336.932 75.6347 345.458 75.6347C349.426 75.6347 354.248 74.1649 357.247 71.9306L359.481 76.164C355.012 79.339 349.662 81.1617 345.193 81.1617C331.758 81.1617 322.879 72.9004 322.879 57.7305C322.879 42.561 333.551 36.0347 343.282 36.0346ZM343.223 41.5323C334.962 41.5324 331.699 48.4113 331.435 53.9382H352.866C352.866 47.2353 350.014 41.5323 343.223 41.5323Z" fill="#011E41"/>
+            <path d="M213.375 36.0669C215.198 36.0669 218.109 37.4486 220.519 40.3003L216.991 45.298C215.109 44.3573 213.198 43.4751 211.229 43.4751C207.26 43.4752 203.997 47.4445 203.997 56.9989V80.1649H196.235V37.1248H203.821V42.4166L206.907 39.1536C208.73 37.3308 211.552 36.0669 213.375 36.0669Z" fill="#011E41"/>
+            <path d="M324.653 37.4148L309.483 80.1315H304.044C299.752 69.4598 295.343 58.7881 291.139 46.5583H290.962C286.817 58.7881 282.613 69.4598 278.379 80.1315H273.293L258.388 38.1205L265.973 36.2393C269.501 46.8228 273.117 57.3475 276.557 69.9889H276.733C280.878 57.6708 285.082 47.3516 289.316 37.0914H294.402L294.431 37.062C298.664 47.3222 302.869 57.6414 307.014 69.9595H307.19C310.542 57.2887 314.07 46.7934 317.509 36.2099L324.653 37.4148Z" fill="#011E41"/>
+          </svg>
+        </div>
+      </div>
+      <div class="deck-cover__main">
+        <h1 class="deck-cover__title">${t('deck.coverTitle')}</h1>
+        <p class="deck-cover__subtitle">${t('deck.coverSubtitle')}</p>
+        <p class="deck-cover__desc">${t('deck.coverDesc')}</p>
+      </div>
+    </div>
+    <div>
+      <div class="deck-cover__meta">
+        <span class="deck-cover__tag">${t('deck.specialistsCount', { count: list.length })}</span>
+        <span style="font-size: 0.85rem; color: #011E41; opacity: 0.8;">Tashkent, Uzbekistan</span>
+      </div>
+      <div class="deck-footer" style="border-top: none; padding-top: 1rem;">
+        <span>${t('deck.footer')}</span>
+      </div>
+    </div>
+  `;
+  deck.appendChild(cover);
+
+  // 2. Individual Member Slides
+  list.forEach((emp) => {
+    const slide = document.createElement('div');
+    slide.className = 'deck-page deck-member';
+
+    const tagsHtml = (emp.tags || []).slice(0, 8).map((tg) => `<span class="deck-member__tag">${tg}</span>`).join('');
+    const bioText = (emp.left?.[1]?.items || emp.left?.[0]?.items || []).slice(0, 3).join('<br><br>');
+    const profileUrl = `${origin.replace(/\/$/, '')}/team/${emp.id}`;
+    const qrSvg = generateQrSvg(profileUrl, { color: '#011E41', bgColor: '#FFFFFF', margin: 1 });
+
+    slide.innerHTML = `
+      <div class="deck-member__header">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #F5A800; font-weight: 700;">Crowe Uzbekistan</span>
+          <div style="font-size: 0.85rem; color: #011E41; opacity: 0.7;">${emp.office || 'Tashkent'}</div>
+        </div>
+        <div style="font-weight: 600; font-size: 0.85rem; color: #011E41;">${t('deck.summaryTitle')}</div>
+      </div>
+      <div class="deck-member__body">
+        <div>
+          <img class="deck-member__photo" src="${emp.photo}" alt="${emp.name}">
+        </div>
+        <div>
+          <h2 class="deck-member__name">${emp.name}</h2>
+          <div class="deck-member__role">${emp.role}</div>
+          <div class="deck-member__tags">${tagsHtml}</div>
+          <div class="deck-member__bio">${bioText}</div>
+        </div>
+        <div class="deck-member__qr-block">
+          <div class="deck-member__qr-code">${qrSvg}</div>
+          <div class="deck-member__qr-caption">${t('deck.profileLink')}</div>
+        </div>
+      </div>
+      <div class="deck-footer">
+        <span>${t('deck.footer')}</span>
+        <span>${emp.name} — ${emp.role}</span>
+      </div>
+    `;
+    deck.appendChild(slide);
+  });
+
+  // 3. Credentials & Certification Matrix Slide
+  const matrixSlide = document.createElement('div');
+  matrixSlide.className = 'deck-page deck-matrix';
+
+  const rowsHtml = list.map((emp) => {
+    const certs = getCertificates(emp.id);
+    const certsList = certs.length
+      ? certs.map((c, i) => `${t('certs.alt', { n: i + 1 })}`).join(', ')
+      : '—';
+    const langs = (emp.languages || []).map((l) => l.toUpperCase()).join(', ');
+    return `
+      <tr>
+        <td style="font-weight: 600; color: #011E41;">${emp.name}</td>
+        <td>${emp.role}</td>
+        <td>${emp.office || 'Tashkent'}</td>
+        <td>${langs}</td>
+        <td>${certs.length ? `<strong>${certs.length}</strong> (${certsList})` : '—'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  matrixSlide.innerHTML = `
+    <div>
+      <h2 class="deck-matrix__title">${t('deck.certsTitle')}</h2>
+      <table class="deck-matrix__table">
+        <thead>
+          <tr>
+            <th>Specialist</th>
+            <th>Role</th>
+            <th>Office</th>
+            <th>Languages</th>
+            <th>Certificates</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    </div>
+    <div class="deck-footer">
+      <span>${t('deck.footer')}</span>
+      <span>${list.length} Specialists</span>
+    </div>
+  `;
+  deck.appendChild(matrixSlide);
+
+  document.body.appendChild(deck);
+  document.body.dataset.print = 'team-deck';
+  document.title = t('compare.exportFileName');
+
+  const restore = () => {
+    document.body.removeAttribute('data-print');
+    deck.remove();
+    updateDocumentTitle();
+  };
+
+  window.addEventListener('afterprint', restore, { once: true });
+  window.print();
+  setTimeout(restore, 600);
+}
+
+compareExportBtn?.addEventListener('click', printTeamDeck);
 
 // ----- Search & Filter -----
 const searchInput = document.getElementById('searchInput');
@@ -996,7 +1158,7 @@ function getEmployeesMatchingTagAndQuery(tagKey, query) {
 
     // emp.search — имя, роль, офис, теги и текст всех секций одной строкой.
     // Пустой запрос даёт пустой terms, а every по нему — true
-    const matchesQuery = terms.every((term) => emp.search.includes(term));
+    const matchesQuery = terms.every((term) => matchSearchTerm(term, emp));
 
     return matchesTag && matchesQuery;
   });
@@ -1200,12 +1362,58 @@ function applyFilters() {
   updateCompareButton();
 }
 
+const SUGGESTIONS_BY_LANG = {
+  ru: ['Аудит', 'ACCA', 'Due Diligence', 'МСФО', 'Налоги', 'Консалтинг'],
+  en: ['Audit', 'ACCA', 'Due Diligence', 'IFRS', 'Tax', 'Consulting'],
+  uz: ['Audit', 'ACCA', 'Due Diligence', 'MHXS', 'Soliqlar', 'Konsalting'],
+};
+
+function renderSearchSuggestions() {
+  if (!searchSuggestionsList) return;
+  searchSuggestionsList.innerHTML = '';
+  const lang = getLang();
+  const list = SUGGESTIONS_BY_LANG[lang] || SUGGESTIONS_BY_LANG.en;
+  const currentQueryNorm = normalizeSearch(searchQuery);
+
+  list.forEach((suggestion) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'search-suggestion';
+    const isSelected = currentQueryNorm === normalizeSearch(suggestion);
+    if (isSelected) btn.classList.add('search-suggestion--active');
+    btn.textContent = suggestion;
+
+    btn.addEventListener('click', () => {
+      if (isSelected) {
+        searchQuery = '';
+        if (searchInput) {
+          searchInput.value = '';
+          searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
+        }
+        if (searchClearBtn) searchClearBtn.hidden = true;
+      } else {
+        searchQuery = suggestion;
+        if (searchInput) {
+          searchInput.value = suggestion;
+          searchInput.closest('.search-box')?.classList.add('search-box--has-value');
+        }
+        if (searchClearBtn) searchClearBtn.hidden = false;
+      }
+      applyFilters();
+      renderSearchSuggestions();
+    });
+
+    searchSuggestionsList.appendChild(btn);
+  });
+}
+
 if (searchInput) {
   searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value;
     if (searchClearBtn) searchClearBtn.hidden = !searchQuery;
     searchInput.closest('.search-box')?.classList.toggle('search-box--has-value', Boolean(searchQuery));
     applyFilters();
+    renderSearchSuggestions();
   });
 }
 
@@ -1216,6 +1424,7 @@ if (searchClearBtn) {
     searchClearBtn.hidden = true;
     searchInput.closest('.search-box')?.classList.remove('search-box--has-value');
     applyFilters();
+    renderSearchSuggestions();
     searchInput.focus();
   });
 }
@@ -1232,6 +1441,7 @@ if (resetFiltersBtn) {
     if (searchClearBtn) searchClearBtn.hidden = true;
     renderFilterChips();
     applyFilters();
+    renderSearchSuggestions();
   });
 }
 
@@ -1571,6 +1781,7 @@ document.addEventListener('keydown', (e) => {
       }
       if (searchClearBtn) searchClearBtn.hidden = true;
       applyFilters();
+      renderSearchSuggestions();
     }
   }
 });
@@ -1718,6 +1929,7 @@ if (portfolioSideNext) {
 
 applyStaticTranslations();
 updateLangSwitchUI();
+renderSearchSuggestions();
 renderFilterChips();
 renderCards();
 initFromUrl();

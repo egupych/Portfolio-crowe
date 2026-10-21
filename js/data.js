@@ -927,3 +927,103 @@ export function getEmployees(lang) {
       return { ...localized, search: buildSearchText(localized) };
     });
 }
+
+/**
+ * Calculates Levenshtein distance between two strings with early exit.
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
+export function levenshteinDistance(a, b) {
+  if (a === b) return 0;
+  const la = a.length;
+  const lb = b.length;
+  if (!la) return lb;
+  if (!lb) return la;
+  if (Math.abs(la - lb) > 2) return 999;
+
+  let prev = new Array(lb + 1);
+  let curr = new Array(lb + 1);
+
+  for (let j = 0; j <= lb; j++) prev[j] = j;
+
+  for (let i = 1; i <= la; i++) {
+    curr[0] = i;
+    const ca = a.charCodeAt(i - 1);
+    for (let j = 1; j <= lb; j++) {
+      const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + cost,
+      );
+    }
+    const temp = prev;
+    prev = curr;
+    curr = temp;
+  }
+  return prev[lb];
+}
+
+/**
+ * Common phonetic transliterations, abbreviations, and synonyms for consulting terms.
+ */
+export const SEARCH_ALIASES = {
+  'дилигинс': ['diligence', 'дилидженс'],
+  'дилидженс': ['diligence', 'due'],
+  'дю': ['due'],
+  'дью': ['due'],
+  'бугалтер': ['бухгалтер', 'бухгалтерия'],
+  'бугалтерия': ['бухгалтерия', 'бухгалтер'],
+  'бух': ['бухгалтер', 'бухгалтерия'],
+  'адитор': ['аудитор', 'аудит'],
+  'аудитер': ['аудитор', 'аудит'],
+  'асса': ['acca'],
+  'акка': ['acca'],
+  'мфо': ['мсфо', 'ifrs', 'mhxs'],
+  'мсфо': ['ifrs', 'мсфо', 'mhxs'],
+  'ifrs': ['мсфо', 'ifrs', 'mhxs'],
+  'mhxs': ['ifrs', 'мсфо', 'mhxs'],
+  'налог': ['налоги', 'налогообложение', 'tax', 'soliq'],
+  'tax': ['налог', 'налоги', 'налогообложение', 'soliq'],
+  'солик': ['soliq', 'налог'],
+  'оценка': ['valuation', 'baholash'],
+  'консалтинг': ['consulting', 'konsalting'],
+};
+
+/**
+ * Matches a single search term against an employee profile using
+ * exact substring, aliases, and typo-tolerant fuzzy matching.
+ * @param {string} term
+ * @param {object} emp
+ * @returns {boolean}
+ */
+export function matchSearchTerm(term, emp) {
+  if (!term) return true;
+  if (emp.search && emp.search.includes(term)) return true;
+
+  const aliases = SEARCH_ALIASES[term];
+  if (aliases && aliases.some((a) => emp.search && emp.search.includes(a))) {
+    return true;
+  }
+
+  if (term.length < 3) return false;
+
+  if (!emp._searchWords) {
+    emp._searchWords = (emp.search || '')
+      .split(/[\s,.;:!?()\n\r"«»]+/)
+      .filter((w) => w.length >= 3);
+  }
+
+  const maxDist = term.length >= 7 ? 2 : 1;
+  for (const word of emp._searchWords) {
+    if (word.startsWith(term) || term.startsWith(word)) return true;
+    const sliceLen = Math.min(word.length, term.length + 1);
+    const compWord = word.slice(0, sliceLen);
+    if (levenshteinDistance(term, compWord) <= maxDist) {
+      return true;
+    }
+  }
+
+  return false;
+}

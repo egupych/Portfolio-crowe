@@ -152,6 +152,30 @@ describe('поиск', () => {
     assert.equal($('#searchInput').value, '');
     assert.equal(cards().length, 13);
   });
+
+  test('поиск устойчив к опечаткам (дилигинс находит Due Diligence)', async () => {
+    await search('дилигинс');
+    assert.ok(names().some((n) => n.includes('Bell')));
+  });
+
+  test('быстрые подсказки-теги фильтруют выдачу при клике', async () => {
+    const suggestions = $$('.search-suggestion');
+    assert.ok(suggestions.length > 0, 'подсказки отрендерены');
+
+    const firstChip = suggestions[0];
+    const chipText = firstChip.textContent.trim();
+    await click(firstChip);
+
+    assert.equal($('#searchInput').value, chipText);
+    const activeChip = $('.search-suggestion--active');
+    assert.ok(activeChip, 'активный чип подсказки выделен');
+    assert.equal(activeChip.textContent.trim(), chipText);
+
+    // Повторный клик снимает выбор
+    await click(activeChip);
+    assert.equal($('#searchInput').value, '');
+    assert.equal($('.search-suggestion--active'), null);
+  });
 });
 
 describe('фильтр и возврат из профиля', () => {
@@ -423,6 +447,24 @@ describe('сравнение', () => {
     dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await new Promise((r) => setTimeout(r, 400));
     assert.equal($('#homeView').hidden, false);
+  });
+
+  test('кнопка «Скачать буклет команды (PDF)» собирает презентацию и вызывает печать', async () => {
+    await loadApp('http://localhost/compare', three);
+    let printCalled = false;
+    dom.window.print = () => { printCalled = true; };
+
+    assert.ok($('#compareExportBtn'), 'кнопка экспорта буклета существует');
+    assert.equal($('#compareExportBtn').disabled, false);
+
+    await click($('#compareExportBtn'));
+    assert.equal(printCalled, true);
+    assert.equal(dom.window.document.body.dataset.print, 'team-deck');
+
+    const deck = $('#teamDeckPrint');
+    assert.ok(deck.querySelector('.deck-cover'), 'титульный лист');
+    assert.equal(deck.querySelectorAll('.deck-member').length, 3, 'карточка каждого выбранного специалиста');
+    assert.ok(deck.querySelector('.deck-matrix'), 'матрица сертификатов');
   });
 });
 
