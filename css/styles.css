@@ -136,6 +136,10 @@ body {
   transition: background-color var(--transition), color var(--transition);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .page-bg {
   position: fixed;
   inset: 0;
@@ -2223,6 +2227,11 @@ body {
 .lightbox__nav--next {
   right: 1.5rem;
   /* 24px */
+}
+
+.lightbox__nav[hidden],
+.lightbox__counter[hidden] {
+  display: none !important;
 }
 
 .lightbox__counter {

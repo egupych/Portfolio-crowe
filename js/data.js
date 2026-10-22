@@ -86,6 +86,11 @@ export const CERT_DETAILS = {
     en: 'ACCA Advanced Diploma in Accounting and Business',
     uz: 'ACCA Advanced Diploma in Accounting and Business',
   },
+  'bekzod-abbosov-2': {
+    ru: 'ACCA Member',
+    en: 'ACCA Member',
+    uz: 'ACCA aʼzosi (ACCA Member)',
+  },
   'sherzodbek-abdukhalimov-1': {
     ru: 'ACCA Advanced Diploma in Accounting and Business',
     en: 'ACCA Advanced Diploma in Accounting and Business',
@@ -166,7 +171,7 @@ export const CERTS = {
   'sokhiba-khodjaeva': ['sokhiba-khodjaeva-1', 'sokhiba-khodjaeva-2', 'sokhiba-khodjaeva-3'],
   'parvina-khidoyatova': ['parvina-khidoyatova-1', 'parvina-khidoyatova-2'],
   'validzhon-tursunov': ['validzhon-tursunov-1'],
-  'bekzod-abbosov': ['bekzod-abbosov-1'],
+  'bekzod-abbosov': ['bekzod-abbosov-1', 'bekzod-abbosov-2'],
   'sherzodbek-abdukhalimov': [
     'sherzodbek-abdukhalimov-1',
     'sherzodbek-abdukhalimov-2',

@@ -3,7 +3,7 @@
  * Provides offline caching (PWA) and instant loads.
  */
 
-const CACHE_NAME = 'crowe-portfolio-v4';
+const CACHE_NAME = 'crowe-portfolio-v5';
 
 const PRECACHE_ASSETS = [
   '/',

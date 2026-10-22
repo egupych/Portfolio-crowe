@@ -291,6 +291,14 @@ describe('лайтбокс', () => {
     assert.equal(lightbox.hidden, true);
     assert.equal(dom.window.document.activeElement, preview, 'фокус должен вернуться на превью');
   });
+
+  test('при единственном сертификате стрелки и счётчик скрыты', async () => {
+    await loadApp('http://localhost/team/validzhon-tursunov');
+    await click($('.cert-card'));
+    assert.equal($('#lightboxPrev').hidden, true);
+    assert.equal($('#lightboxNext').hidden, true);
+    assert.equal($('#lightboxCounter').hidden, true);
+  });
 });
 
 describe('переключение языка', () => {

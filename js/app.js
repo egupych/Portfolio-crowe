@@ -1551,12 +1551,14 @@ function trapLightboxFocus(e) {
 function updateLightbox() {
   lightboxImg.src = currentCerts[currentCertIndex].full;
   lightboxCounter.textContent = `${currentCertIndex + 1} / ${currentCerts.length}`;
+  lightboxCounter.hidden = currentCerts.length < 2;
   lightboxPrev.hidden = currentCerts.length < 2;
   lightboxNext.hidden = currentCerts.length < 2;
   lightboxLens.style.display = 'none';
 }
 
 function navigateLightbox(dir) {
+  if (currentCerts.length < 2) return;
   currentCertIndex = (currentCertIndex + dir + currentCerts.length) % currentCerts.length;
   lightboxImg.style.animation = 'none';
   lightboxImg.offsetHeight;
