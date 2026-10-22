@@ -235,7 +235,6 @@ initTheme();
 
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
-const lightboxLens = document.getElementById('lightboxLens');
 const lightboxClose = document.getElementById('lightboxClose');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
@@ -1523,7 +1522,6 @@ function openLightbox(certs, index, trigger) {
 function closeLightbox() {
   lightbox.hidden = true;
   document.body.style.overflow = '';
-  lightboxLens.style.display = 'none';
   // Возвращаем фокус туда, откуда открыли, иначе он падает в начало страницы
   lightboxTrigger?.focus();
   lightboxTrigger = null;
@@ -1554,7 +1552,6 @@ function updateLightbox() {
   lightboxCounter.hidden = currentCerts.length < 2;
   lightboxPrev.hidden = currentCerts.length < 2;
   lightboxNext.hidden = currentCerts.length < 2;
-  lightboxLens.style.display = 'none';
 }
 
 function navigateLightbox(dir) {
@@ -1604,31 +1601,6 @@ lightbox.addEventListener('touchend', (e) => {
     }
   }
 }, { passive: true });
-
-// Magnifying lens functionality
-// Лупа только для мыши: на ноутбуке с сенсорным экраном мышь тоже работает,
-// а касание пальцем — нет, иначе лупа мешала бы свайпу
-lightboxImg.addEventListener('pointermove', (e) => {
-  if (e.pointerType !== 'mouse') return;
-  const rect = lightboxImg.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  lightboxLens.style.display = 'block';
-  lightboxLens.style.left = `${x - 75}px`;
-  lightboxLens.style.top = `${y - 75}px`;
-
-  const zoom = 2;
-  lightboxLens.style.backgroundImage = `url(${lightboxImg.src})`;
-  lightboxLens.style.backgroundSize = `${rect.width * zoom}px ${rect.height * zoom}px`;
-  // Знак ставим числом, а не приклеиваем «-» к строке: у краёв картинки
-  // смещение отрицательное и получалось невалидное «--20px»
-  lightboxLens.style.backgroundPosition = `${75 - x * zoom}px ${75 - y * zoom}px`;
-});
-
-lightboxImg.addEventListener('pointerleave', () => {
-  lightboxLens.style.display = 'none';
-});
 
 // Global Keyboard Navigation
 document.addEventListener('keydown', (e) => {
